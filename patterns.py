@@ -23,3 +23,28 @@
 #       else:
 #           pop any G from stack
 #           add play(G,0)
+#
+# PATTERNS
+# 
+# Bridge
+# Position:
+#       a b
+#      1 x .
+#       2 . x
+# Contract: create path (a1, x, b2) where x = a2 OR b1
+# Strategy: if white plays b1 - black plays a2
+#           else if white plays a2 - black plays b1
+#           else play a2 OR b1
+# Notes: consider generalizing the bridge pattern to the top/bottom, where a cell is paired to 
+#       an edge cell
+#
+# Pair
+# Position:
+#       a b c
+#      1 . . .
+#       2 . x .
+#        3 . . .      
+# Contract: create pair (a1, b2) OR (b2, c3)
+# Strategy: if white plays a1 - black plays c3   
+#           else if white plays c3 - black plays a1
+#           else play a1 OR c3
