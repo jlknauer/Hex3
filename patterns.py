@@ -65,6 +65,11 @@ class HexBoard():
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
         
         # TODO: data structure housing all the cells and the coordinates they are mapped to
+        self.board_dict = {}
+        for x in range(self.board_dimension):
+            for y in range(self.board_dimension):
+                self.board_dict[(x,y)] = HexCell(x,y)
+        
         # TODO: representation of board edges (top/bottom and left/right win conditions)
     
     # TODO: printable board representation
@@ -92,4 +97,5 @@ class HexCell():
         self.state = state
 
     def __repr__(self):
-        pass
+        # Not sure how we want this represented
+        return str(self.y*3+self.x)
