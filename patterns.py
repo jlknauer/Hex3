@@ -1,4 +1,3 @@
-# TODO: 3x3 pattern implementation
 # Outline
 #
 # THE GAME - pattern representations
@@ -48,3 +47,36 @@
 # Strategy: if white plays a1 - black plays c3   
 #           else if white plays c3 - black plays a1
 #           else play a1 OR c3
+
+# cell states
+UNOCCUPIED = 0
+BLACK = 1
+WHITE = 2
+
+# representation of the game state
+class HexBoard():
+    # intialize board state to all cells unoccupied
+    def __init__(self, board_dimension):
+        self.board_dimension = board_dimension
+        # TODO: data structure housing all the cells and the coordinates they are mapped to
+        # TODO: representation of board edges (top/bottom and left/right win conditions)
+    
+    # TODO: printable board representation
+    def __repr__(self):
+        pass
+    
+    # TODO: methods for starting the game (black first move along main diagonal)
+    # TODO: methods for player interface for cell placement
+    # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
+
+# representation of individual board cells
+class HexCell():
+    # initialize cell position and state
+    # states: 0 - unoccupied, 1 - black occupied, 2 - white occupied
+    def __init__(self, x, y, state=UNOCCUPIED):
+        self.x = x
+        self.y = y
+        self.state = state
+
+    def __repr__(self):
+        pass
