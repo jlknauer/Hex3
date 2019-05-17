@@ -48,7 +48,6 @@
 #           else if white plays c3 - black plays a1
 #           else play a1 OR c3
 
-# Import statements
 import numpy as np
 
 # cell states
@@ -94,9 +93,3 @@ class HexCell():
 
     def __repr__(self):
         pass
-    
-def main():
-    board = HexBoard(3)
-    print(repr(board))
-    
-main()
