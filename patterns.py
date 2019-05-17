@@ -48,6 +48,9 @@
 #           else if white plays c3 - black plays a1
 #           else play a1 OR c3
 
+# Import statements
+import numpy as np
+
 # cell states
 UNOCCUPIED = 0
 BLACK = 1
@@ -58,12 +61,23 @@ class HexBoard():
     # intialize board state to all cells unoccupied
     def __init__(self, board_dimension):
         self.board_dimension = board_dimension
+        
+        # Create the 2D array to keep track of the board position
+        self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
+        
         # TODO: data structure housing all the cells and the coordinates they are mapped to
         # TODO: representation of board edges (top/bottom and left/right win conditions)
     
     # TODO: printable board representation
     def __repr__(self):
-        pass
+        board = " a b c\n"
+        for row in range(self.board_dimension):
+            board += (' '*row) + str(row+1)
+            for col in self.board_array[row]:
+                board += ' ' + str(col)
+            board += '\n'
+            
+        return board
     
     # TODO: methods for starting the game (black first move along main diagonal)
     # TODO: methods for player interface for cell placement
@@ -80,3 +94,9 @@ class HexCell():
 
     def __repr__(self):
         pass
+    
+def main():
+    board = HexBoard(3)
+    print(repr(board))
+    
+main()
