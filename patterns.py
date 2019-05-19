@@ -85,6 +85,12 @@ class HexBoard():
     
     # TODO: methods for starting the game (black first move along main diagonal)
     # TODO: methods for player interface for cell placement
+    def place_stone(self, x, y, state):
+        # Place a stone at the given x,y coordinate
+        self.board_array[y][x] = state
+        cell = self.board_dict[(x,y)]
+        cell.set_state(state)
+    
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
 
 # representation of individual board cells
@@ -94,6 +100,9 @@ class HexCell():
     def __init__(self, x, y, state=UNOCCUPIED):
         self.x = x
         self.y = y
+        self.state = state
+        
+    def set_state(self, state):
         self.state = state
 
     def __repr__(self):
