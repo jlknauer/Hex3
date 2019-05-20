@@ -68,7 +68,7 @@ class HexBoard():
         self.board_dict = {}
         for x in range(self.board_dimension):
             for y in range(self.board_dimension):
-                self.board_dict[(x,y)] = HexCell(x,y)
+                self.board_dict[(x,y)] = HexCell(x,y,self.board_dimension)
         
         # TODO: representation of board edges (top/bottom and left/right win conditions)
     def expand(self,pos1):
@@ -86,6 +86,7 @@ class HexBoard():
             if cell.state == color:
                 return_list.append(pos)
         return return_list
+    
     def dfs_black(self):
         current_list = []
         drop_list = []
@@ -103,6 +104,7 @@ class HexBoard():
             #print(current_list)
         if len(current_list) == 0:
             return False
+        
     def dfs_white(self):
         current_list = []
         drop_list = []
@@ -119,6 +121,7 @@ class HexBoard():
                         return True
         if len(current_list) == 0:
             return False
+        
     def detect_win(self):
         if self.dfs_black():
             return "Black wins"
@@ -126,6 +129,7 @@ class HexBoard():
             return "White wins"
         else:
             return "Nobody wins"
+        
     # TODO: printable board representation
     def __repr__(self):
         board = " a b c\n"
@@ -151,14 +155,20 @@ class HexBoard():
 class HexCell():
     # initialize cell position and state
     # states: 0 - unoccupied, 1 - black occupied, 2 - white occupied
-    def __init__(self, x, y, state=UNOCCUPIED):
+    def __init__(self, x, y, board_dimension, state=UNOCCUPIED):
         self.x = x
         self.y = y
         self.state = state
+        self.board_dimension = board_dimension
+        
+        if self.x == 0 or self.x == self.board_dimension-1:
+            self.BLACK_EDGE = True
+        if self.y == 0 or self.y == self.board_dimension-1:
+            self.WHITE_EDGE = True
         
     def set_state(self, state):
         self.state = state
 
     def __repr__(self):
         # Not sure how we want this represented
-        return str(self.y*3+self.x)
+        return str(self.y*self.board_dimension + self.x)
