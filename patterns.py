@@ -161,6 +161,8 @@ class HexCell():
         self.state = state
         self.board_dimension = board_dimension
         
+        self.BLACK_EDGE = False
+        self.WHITE_EDGE = False
         if self.x == 0 or self.x == self.board_dimension-1:
             self.BLACK_EDGE = True
         if self.y == 0 or self.y == self.board_dimension-1:
