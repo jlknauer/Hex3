@@ -94,7 +94,6 @@ class HexBoard():
                 current_list.append((i,0))
         while current_list != []:
             for pos in current_list:
-                print(current_list)
                 current_list.extend(self.expand(pos))
                 drop_list.append(pos)
                 current_list = list(set(current_list).difference(set(drop_list)))
@@ -112,7 +111,6 @@ class HexBoard():
                 current_list.append((0,i))
         while current_list != []:
             for pos in current_list:
-                print(current_list)
                 current_list.extend(self.expand(pos))
                 drop_list.append(pos)
                 current_list = list(set(current_list).difference(set(drop_list)))
