@@ -71,7 +71,63 @@ class HexBoard():
                 self.board_dict[(x,y)] = HexCell(x,y)
         
         # TODO: representation of board edges (top/bottom and left/right win conditions)
-    
+    def expand(self,pos1):
+        color = self.board_dict[pos1].state
+        #print(color)
+        append_list = []
+        return_list = []
+        p_list = [(1,0),(0,1),(1,-1),(-1,1),(-1,0),(0,-1)]
+        for p in p_list:
+            new_pos = (pos1[0]+p[0],pos1[1]+p[1])
+            if new_pos[0] < self.board_dimension and new_pos[1] < self.board_dimension and new_pos[0] >= 0 and new_pos[1] >= 0:
+                append_list.append(new_pos)
+        for pos in append_list:
+            cell = self.board_dict[pos]
+            if cell.state == color:
+                return_list.append(pos)
+        return return_list
+    def dfs_black(self):
+        current_list = []
+        drop_list = []
+        for i in range(self.board_dimension):
+            if self.board_dict[(i,0)].state == 1:
+                current_list.append((i,0))
+        while current_list != []:
+            for pos in current_list:
+                print(current_list)
+                current_list.extend(self.expand(pos))
+                drop_list.append(pos)
+                current_list = list(set(current_list).difference(set(drop_list)))
+                for pos1 in current_list:
+                    if pos1[1] == self.board_dimension - 1:
+                        return True
+            #print(current_list)
+        if len(current_list) == 0:
+            return False
+    def dfs_white(self):
+        current_list = []
+        drop_list = []
+        for i in range(self.board_dimension):
+            if self.board_dict[(0,i)].state == 2:
+                current_list.append((0,i))
+        while current_list != []:
+            for pos in current_list:
+                print(current_list)
+                current_list.extend(self.expand(pos))
+                drop_list.append(pos)
+                current_list = list(set(current_list).difference(set(drop_list)))
+                for pos1 in current_list:
+                    if pos1[0] == self.board_dimension - 1:
+                        return True
+        if len(current_list) == 0:
+            return False
+    def detect_win(self):
+        if self.dfs_black():
+            return "Black wins"
+        elif self.dfs_white():
+            return "White wins"
+        else:
+            return "Nobody wins"
     # TODO: printable board representation
     def __repr__(self):
         board = " a b c\n"
