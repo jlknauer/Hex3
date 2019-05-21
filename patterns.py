@@ -150,6 +150,29 @@ class HexBoard():
         cell.set_state(state)
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
+    def find_bridge(self):
+        for cell in self.board_dict:
+            if self.board_dict[cell].state == BLACK:
+                cell = self.board_dict[cell]
+                cell_nbrs = cell.get_neighbours()
+                for nbr in cell_nbrs:
+                    nbr = self.board_dict[nbr]
+                    nbr_nbrs = nbr.get_neighbours()
+                    overlap = set(cell_nbrs) & set(nbr_nbrs)
+                    for overlapping_cell in overlap:
+                        overlapping_cell = self.board_dict[overlapping_cell]
+                        if overlapping_cell.state == UNOCCUPIED and nbr.state == UNOCCUPIED:
+                            # No pressure here
+                            continue
+                        elif (overlapping_cell.state == WHITE and nbr.state == UNOCCUPIED):
+                            # We know one cell is white while the other is empty
+                            bridge_cell = set(overlapping_cell.get_neighbours()) & set(nbr.get_neighbours())
+                            bridge_cell.remove((cell.x,cell.y))
+                            for bridging_cell in bridge_cell:
+                                if self.board_dict[bridging_cell].state == BLACK:
+                                    return (nbr.x,nbr.y) # Play in this cell
+                            if overlapping_cell.BLACK_EDGE and nbr.BLACK_EDGE:
+                                return (nbr.x,nbr.y) # Play in this cell
 
 # representation of individual board cells
 class HexCell():
@@ -164,12 +187,19 @@ class HexCell():
         self.BLACK_EDGE = False
         self.WHITE_EDGE = False
         if self.x == 0 or self.x == self.board_dimension-1:
-            self.BLACK_EDGE = True
-        if self.y == 0 or self.y == self.board_dimension-1:
             self.WHITE_EDGE = True
+        if self.y == 0 or self.y == self.board_dimension-1:
+            self.BLACK_EDGE = True
+            
+        self.neighbours = [(x,y-1), (x+1,y-1), (x-1,y), (x+1,y), (x-1,y+1), (x,y+1)]
+        self.neighbours = [coord for coord in self.neighbours if not \
+                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
         
     def set_state(self, state):
         self.state = state
+        
+    def get_neighbours(self):
+        return self.neighbours
 
     def __repr__(self):
         # Not sure how we want this represented

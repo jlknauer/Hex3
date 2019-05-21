@@ -17,6 +17,7 @@ def main():
             print("Invalid values")
         else:
             board_3x3.place_stone(pos_dict[pos[0]], int(pos[1])-1, color)
+            print(board_3x3.find_bridge())
             print(board_3x3)
     
     #White wining case
