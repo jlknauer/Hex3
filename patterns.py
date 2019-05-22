@@ -86,7 +86,6 @@ class HexBoard():
             if cell.state == color:
                 return_list.append(pos)
         return return_list
-    
     def dfs_black(self):
         current_list = []
         drop_list = []
@@ -124,11 +123,11 @@ class HexBoard():
         
     def detect_win(self):
         if self.dfs_black():
-            return "Black wins"
+            return 1
         elif self.dfs_white():
-            return "White wins"
+            return 2
         else:
-            return "Nobody wins"
+            return 0
         
     # TODO: printable board representation
     def __repr__(self):
@@ -150,7 +149,7 @@ class HexBoard():
         cell.set_state(state)
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
-    def find_bridge(self):
+    def find_bridge(self,color):
         # for cell in self.board_dict:
         #     if self.board_dict[cell].state == BLACK:
         #         cell = self.board_dict[cell]
@@ -176,16 +175,35 @@ class HexBoard():
         #                         return (nbr.x,nbr.y) # Play in this cell
         return_list = []
         for pos in self.board_dict:
-            color = self.board_dict[pos].state
-            if color != UNOCCUPIED:
+            pos_color = self.board_dict[pos].state
+            if pos_color == color:
                 cell = self.board_dict[pos]
                 cell_bridges = cell.get_bridges()
                 for cell_bridge in cell_bridges:
                     cell_bridge = self.board_dict[cell_bridge]
-                    if cell_bridge.state == color:
-                        return_list.append((coord_2_pos(pos[0],pos[1]+1),coord_2_pos(cell_bridge.x,cell_bridge.y)))
+                    if cell_bridge.state == color and self.empty_pairs(cell):
+                        return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_bridge.x,cell_bridge.y)))
         return return_list
-
+    def find_neighbors(self,color):
+        return_list = []
+        for pos in self.board_dict:
+            pos_color = self.board_dict[pos].state
+            if pos_color == color:
+                cell = self.board_dict[pos]
+                cell_nbrs = cell.get_neighbours()
+                for cell_nbr in cell_nbrs:
+                    cell_nbr = self.board_dict[cell_nbr]
+                    if cell_nbr.state == color:
+                        return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
+        return return_list      
+    def empty_pairs (self,cell):
+        pairs = cell.get_pairs()
+        for pair in pairs:
+            cell = self.board_dict[pair]
+            color = cell.state
+            if color != 0:
+                return False
+        return True
 # representation of individual board cells
 class HexCell():
     # initialize cell position and state
@@ -203,24 +221,28 @@ class HexCell():
         if self.y == 0 or self.y == self.board_dimension-1:
             self.BLACK_EDGE = True
             
-        self.neighbours = [(x,y-1), (x+1,y-1), (x-1,y), (x+1,y), (x-1,y+1), (x,y+1)]
+        self.neighbours = [(x+1,y), (x+1,y-1), (x,y+1)]
         self.neighbours = [coord for coord in self.neighbours if not \
+                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
+        self.pairs = [(x+1,y),(x,y+1)]
+        self.pairs = [coord for coord in self.pairs if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
         self.bridges = [(x+1,y+1)]
         self.bridges = [coord for coord in self.bridges if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]        
     def set_state(self, state):
-        self.state = state
-        
+        self.state = state        
     def get_neighbours(self):
         return self.neighbours
     def get_bridges(self):
         return self.bridges
+    def get_pairs(self):
+        return self.pairs
     def __repr__(self):
         # Not sure how we want this represented
         return str(self.y*self.board_dimension + self.x)
 def coord_2_pos(x,y):
     pos_dict = {0: "a", 1: "b", 2: "c"}
     x = pos_dict[x]
-    y = str(y)
+    y = str(y+1)
     return x + y
