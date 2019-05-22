@@ -72,7 +72,7 @@ class HexBoard():
         
         # TODO: representation of board edges (top/bottom and left/right win conditions)
 
-    # expanding neighbor search for finding wins
+    # expanding neighbor search for depth first search for finding winning
     def expand(self,pos1):
         color = self.board_dict[pos1].state
         #print(color)
@@ -125,7 +125,8 @@ class HexBoard():
                         return True
         if len(current_list) == 0:
             return False
-        
+
+    # detecting winning
     def detect_win(self):
         if self.dfs_black():
             return 1
@@ -142,7 +143,6 @@ class HexBoard():
             for col in self.board_array[row]:
                 board += ' ' + str(col)
             board += '\n'
-            
         return board
     
     # TODO: methods for starting the game (black first move along main diagonal)
