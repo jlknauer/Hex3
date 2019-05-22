@@ -110,7 +110,7 @@ def main():
         print("Game ends,Black wins and no need to check patterns")
     else:
         print("Game ends,White wins and no need to check patterns")
-    #case5
+    #case6
     print("\n Case6:")
     board_3x3 = patterns.HexBoard(3) 
     board_3x3.place_stone(0,0,1)

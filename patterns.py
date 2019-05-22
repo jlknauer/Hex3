@@ -239,18 +239,24 @@ class HexCell():
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
         self.bridges = [(x+1,y+1)]
         self.bridges = [coord for coord in self.bridges if not \
-                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]        
+                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
+        
     def set_state(self, state):
-        self.state = state        
+        self.state = state
+        
     def get_neighbours(self):
         return self.neighbours
+    
     def get_bridges(self):
         return self.bridges
+    
     def get_pairs(self):
         return self.pairs
+    
     def __repr__(self):
         # Not sure how we want this represented
         return str(self.y*self.board_dimension + self.x)
+    
 def coord_2_pos(x,y):
     pos_dict = {0: "a", 1: "b", 2: "c"}
     x = pos_dict[x]
