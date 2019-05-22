@@ -71,6 +71,8 @@ class HexBoard():
                 self.board_dict[(x,y)] = HexCell(x,y,self.board_dimension)
         
         # TODO: representation of board edges (top/bottom and left/right win conditions)
+
+    # expanding neighbor search for finding wins
     def expand(self,pos1):
         color = self.board_dict[pos1].state
         #print(color)
@@ -86,6 +88,8 @@ class HexBoard():
             if cell.state == color:
                 return_list.append(pos)
         return return_list
+
+    # search for black wins
     def dfs_black(self):
         current_list = []
         drop_list = []
@@ -104,6 +108,7 @@ class HexBoard():
         if len(current_list) == 0:
             return False
         
+    # search for white wins
     def dfs_white(self):
         current_list = []
         drop_list = []
@@ -184,6 +189,8 @@ class HexBoard():
                     if cell_bridge.state == color and self.empty_pairs(cell):
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_bridge.x,cell_bridge.y)))
         return return_list
+
+    # find adjacent cells
     def find_neighbors(self,color):
         return_list = []
         for pos in self.board_dict:
@@ -196,6 +203,8 @@ class HexBoard():
                     if cell_nbr.state == color:
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
         return return_list      
+
+    # find pairs
     def empty_pairs (self,cell):
         pairs = cell.get_pairs()
         for pair in pairs:
@@ -204,6 +213,7 @@ class HexBoard():
             if color != 0:
                 return False
         return True
+
 # representation of individual board cells
 class HexCell():
     # initialize cell position and state
@@ -213,7 +223,7 @@ class HexCell():
         self.y = y
         self.state = state
         self.board_dimension = board_dimension
-        
+
         self.BLACK_EDGE = False
         self.WHITE_EDGE = False
         if self.x == 0 or self.x == self.board_dimension-1:
