@@ -5,6 +5,7 @@ def main():
     pos_dict = {'a': 0, 'b': 1, 'c': 2}
     print(board_3x3)
     while board_3x3.detect_win() == 0:
+        print("\n")
         pos = input("Enter move (ie a2): ")
         color = int(input("Enter color (0/1/2): "))
         try:
