@@ -64,25 +64,32 @@ class HexBoard():
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
         
-        # TODO: data structure housing all the cells and the coordinates they are mapped to
+        # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
         for x in range(self.board_dimension):
             for y in range(self.board_dimension):
                 self.board_dict[(x,y)] = HexCell(x,y,self.board_dimension)
         
         # TODO: representation of board edges (top/bottom and left/right win conditions)
-
-    # expanding neighbor search for depth first search for finding winning
+        
     def expand(self,pos1):
+        # Neighbour search, used for DFS to find a winning path
         color = self.board_dict[pos1].state
-        #print(color)
         append_list = []
         return_list = []
+        # p_list contains the potential neighbouring cells with x,y relative to
+        # the current position
         p_list = [(1,0),(0,1),(1,-1),(-1,1),(-1,0),(0,-1)]
         for p in p_list:
+            # Find the new position (neighbour) and ensure it is within the
+            # bounds of the board. If it is, add it to append_list since it is
+            # a neighbour
             new_pos = (pos1[0]+p[0],pos1[1]+p[1])
             if new_pos[0] < self.board_dimension and new_pos[1] < self.board_dimension and new_pos[0] >= 0 and new_pos[1] >= 0:
                 append_list.append(new_pos)
+                
+        # For all the neighbouring cells, add the ones that contain the same
+        # colour cell as the original, then return those
         for pos in append_list:
             cell = self.board_dict[pos]
             if cell.state == color:
@@ -91,43 +98,70 @@ class HexBoard():
 
     # search for black wins
     def dfs_black(self):
+        # Performs a DFS looking for a black win. Goes top to bottom on the board
         current_list = []
         drop_list = []
+        
+        # Check all cells in the first row, any that are black get added to the
+        # current list
         for i in range(self.board_dimension):
             if self.board_dict[(i,0)].state == 1:
                 current_list.append((i,0))
+                
+        # Iterate until the current list has no more cells
         while current_list != []:
             for pos in current_list:
+                # Add all neighbours with the same colour cell to the list
                 current_list.extend(self.expand(pos))
+                # Add the current cell to the list of cells we've already checked
                 drop_list.append(pos)
+                # Update the current list so it contains no cells that have 
+                # already been checked
                 current_list = list(set(current_list).difference(set(drop_list)))
                 for pos1 in current_list:
+                    # If any cell in the current list has reached the last row,
+                    # then a winning path has been found, so return true
                     if pos1[1] == self.board_dimension - 1:
                         return True
-            #print(current_list)
+            
+        # No winning path was found, return false
         if len(current_list) == 0:
             return False
         
-    # search for white wins
+    
     def dfs_white(self):
+        # Performs a DFS looking for a white win. Goes left to right on the board
         current_list = []
         drop_list = []
         for i in range(self.board_dimension):
+            # For all the cells in the first column, if the cell contains a
+            # white stone, add it to the current list
             if self.board_dict[(0,i)].state == 2:
                 current_list.append((0,i))
+                
+        # Iterate until the current list has no more cells left
         while current_list != []:
             for pos in current_list:
+                # Find other positions connecting to the current cell with the
+                # same colour
                 current_list.extend(self.expand(pos))
+                # Add current position to drop list to show it has been checked
                 drop_list.append(pos)
+                # Remove already checked cells from the current list
                 current_list = list(set(current_list).difference(set(drop_list)))
                 for pos1 in current_list:
                     if pos1[0] == self.board_dimension - 1:
+                        # Have reached the end of the board with a path, so
+                        # white has a winning path
                         return True
+        
+        # All items in the current list have been checked, no win exists for white
         if len(current_list) == 0:
             return False
-
-    # detecting winning
+        
     def detect_win(self):
+        # Returns a 1 if black has won, a 2 if white has won, or a 0 if no one
+        # has won
         if self.dfs_black():
             return 1
         elif self.dfs_white():
@@ -135,8 +169,8 @@ class HexBoard():
         else:
             return 0
         
-    # TODO: printable board representation
     def __repr__(self):
+        # Returns a string representation of the board
         board = " a b c\n"
         for row in range(self.board_dimension):
             board += (' '*row) + str(row+1)
@@ -179,33 +213,46 @@ class HexBoard():
         #                     if overlapping_cell.BLACK_EDGE and nbr.BLACK_EDGE:
         #                         return (nbr.x,nbr.y) # Play in this cell
         return_list = []
+        # Iterate through all cells
         for pos in self.board_dict:
             pos_color = self.board_dict[pos].state
+            # If the cell has the same color we are looking for
             if pos_color == color:
                 cell = self.board_dict[pos]
+                # Find the bridges associated with that cell
                 cell_bridges = cell.get_bridges()
                 for cell_bridge in cell_bridges:
+                    # Get the other cell that gets bridged to
                     cell_bridge = self.board_dict[cell_bridge]
                     if cell_bridge.state == color and self.empty_pairs(cell):
+                        # If the bridge cell is also the color we are looking for
+                        # and the cells between them are empty, add the cells
+                        # to the return list
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_bridge.x,cell_bridge.y)))
         return return_list
 
-    # find adjacent cells
     def find_neighbors(self,color):
+        # Find adjacent cells
         return_list = []
+        
+        # Iterate through all cells
         for pos in self.board_dict:
             pos_color = self.board_dict[pos].state
+            # Check the cell has the same colour as the one required
             if pos_color == color:
                 cell = self.board_dict[pos]
+                # Find the neighbours of the cell
                 cell_nbrs = cell.get_neighbours()
                 for cell_nbr in cell_nbrs:
                     cell_nbr = self.board_dict[cell_nbr]
+                    # If the neighbour has the needed colour, add it to the
+                    # return list with the other cell
                     if cell_nbr.state == color:
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
-        return return_list      
+        return return_list
 
-    # find pairs
     def empty_pairs (self,cell):
+        # Find pairs of a cell, used for finding bridges between two cells
         pairs = cell.get_pairs()
         for pair in pairs:
             cell = self.board_dict[pair]
@@ -221,16 +268,20 @@ class HexCell():
     def __init__(self, x, y, board_dimension, state=UNOCCUPIED):
         self.x = x
         self.y = y
+        # State is black, white, or unoccupied
         self.state = state
         self.board_dimension = board_dimension
 
+        # BLACK_EDGE is true if the cell is either the first or last row
         self.BLACK_EDGE = False
+        # WHITE_EDGE is true if the cell is either the first or last column
         self.WHITE_EDGE = False
         if self.x == 0 or self.x == self.board_dimension-1:
             self.WHITE_EDGE = True
         if self.y == 0 or self.y == self.board_dimension-1:
             self.BLACK_EDGE = True
             
+        # Keeps track of 3 of the cells neighbours
         self.neighbours = [(x+1,y), (x+1,y-1), (x,y+1)]
         self.neighbours = [coord for coord in self.neighbours if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
@@ -254,10 +305,11 @@ class HexCell():
         return self.pairs
     
     def __repr__(self):
-        # Not sure how we want this represented
-        return str(self.y*self.board_dimension + self.x)
+        # Represent in board coordinate form
+        return coord_2_pos(self.x,self.y)
     
 def coord_2_pos(x,y):
+    # Changes a coordinate into board coordinate form
     pos_dict = {0: "a", 1: "b", 2: "c"}
     x = pos_dict[x]
     y = str(y+1)
