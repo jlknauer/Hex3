@@ -224,11 +224,23 @@ class HexBoard():
                 for cell_bridge in cell_bridges:
                     # Get the other cell that gets bridged to
                     cell_bridge = self.board_dict[cell_bridge]
-                    if cell_bridge.state == color and self.empty_pairs(cell):
+                    if cell_bridge.state == color:# and self.empty_pairs(cell):
                         # If the bridge cell is also the color we are looking for
                         # and the cells between them are empty, add the cells
                         # to the return list
-                        return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_bridge.x,cell_bridge.y)))
+                        pairs = list(set(cell.get_neighbours()) & set(cell_bridge.get_neighbours()))
+                        return_list.append((coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])))
+                
+                # Find bridges that are edge bridges
+                cell_nbrs = cell.get_neighbours()
+                for nbr in cell_nbrs:
+                    if self.board_dict[nbr].state == UNOCCUPIED:
+                        bridge_cell = set(cell.get_neighbours()) & set(self.board_dict[nbr].get_neighbours())
+                        for overlap_cell in bridge_cell:
+                            if self.board_dict[overlap_cell].state == UNOCCUPIED:
+                                if self.board_dict[overlap_cell].BLACK_EDGE and self.board_dict[nbr].BLACK_EDGE:
+                                    return_list.append((coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])))
+                                    cell_nbrs.remove(overlap_cell)
         return return_list
 
     def find_neighbors(self,color):
@@ -282,13 +294,13 @@ class HexCell():
             self.BLACK_EDGE = True
             
         # Keeps track of 3 of the cells neighbours
-        self.neighbours = [(x+1,y), (x+1,y-1), (x,y+1)]
+        self.neighbours = [(x+1,y), (x+1,y-1), (x,y+1), (x,y-1), (x-1,y),(x-1,y+1)]
         self.neighbours = [coord for coord in self.neighbours if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
         self.pairs = [(x+1,y),(x,y+1)]
         self.pairs = [coord for coord in self.pairs if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
-        self.bridges = [(x+1,y+1)]
+        self.bridges = [(x+1,y+1), (x-1,y+2), (x-2,y+1)]
         self.bridges = [coord for coord in self.bridges if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
         
