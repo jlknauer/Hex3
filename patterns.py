@@ -64,6 +64,8 @@ class HexBoard():
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
         
+        self.strategies = []
+        
         # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
         for x in range(self.board_dimension):
@@ -186,32 +188,25 @@ class HexBoard():
         self.board_array[y][x] = state
         cell = self.board_dict[(x,y)]
         cell.set_state(state)
+        
+        if state == WHITE:
+            self.search_strategies(coord_2_pos(x,y))
+        
+    def find_substrategies(self):
+        self.find_bridge(1)
+        
+    def search_strategies(self, white_move):
+        for sub_strat in self.strategies:
+            for cell in sub_strat:
+                if white_move in sub_strat:
+                    # Response needed
+                    self.respond_to_bridge(sub_strat, white_move)
+                    
+    def respond_to_bridge(self, strat, white_move):
+        return
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
     def find_bridge(self,color):
-        # for cell in self.board_dict:
-        #     if self.board_dict[cell].state == BLACK:
-        #         cell = self.board_dict[cell]
-        #         cell_nbrs = cell.get_neighbours()
-        #         for nbr in cell_nbrs:
-        #             nbr = self.board_dict[nbr]
-        #             nbr_nbrs = nbr.get_neighbours()
-        #             overlap = set(cell_nbrs) & set(nbr_nbrs)
-        #             print(overlap)
-        #             for overlapping_cell in overlap:
-        #                 overlapping_cell = self.board_dict[overlapping_cell]
-        #                 if overlapping_cell.state == UNOCCUPIED and nbr.state == UNOCCUPIED:
-        #                     # No pressure here
-        #                     continue
-        #                 elif (overlapping_cell.state == WHITE and nbr.state == UNOCCUPIED):
-        #                     # We know one cell is white while the other is empty
-        #                     bridge_cell = set(overlapping_cell.get_neighbours()) & set(nbr.get_neighbours())
-        #                     bridge_cell.remove((cell.x,cell.y))
-        #                     for bridging_cell in bridge_cell:
-        #                         if self.board_dict[bridging_cell].state == BLACK:
-        #                             return (nbr.x,nbr.y) # Play in this cell
-        #                     if overlapping_cell.BLACK_EDGE and nbr.BLACK_EDGE:
-        #                         return (nbr.x,nbr.y) # Play in this cell
         return_list = []
         # Iterate through all cells
         for pos in self.board_dict:
@@ -235,12 +230,18 @@ class HexBoard():
                 cell_nbrs = cell.get_neighbours()
                 for nbr in cell_nbrs:
                     if self.board_dict[nbr].state == UNOCCUPIED:
+                        # Get the shared cells of the neighbour and cell
                         bridge_cell = set(cell.get_neighbours()) & set(self.board_dict[nbr].get_neighbours())
+                        # Iterate through the shared cells
                         for overlap_cell in bridge_cell:
                             if self.board_dict[overlap_cell].state == UNOCCUPIED:
+                                # If both cells are unoccupied and black edges, then a bridge exists between them
                                 if self.board_dict[overlap_cell].BLACK_EDGE and self.board_dict[nbr].BLACK_EDGE:
                                     return_list.append((coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])))
                                     cell_nbrs.remove(overlap_cell)
+                                    
+        for strat in return_list:
+            self.strategies.append(strat)
         return return_list
 
     def find_neighbors(self,color):
@@ -326,3 +327,10 @@ def coord_2_pos(x,y):
     x = pos_dict[x]
     y = str(y+1)
     return x + y
+
+def pos_2_coord(pos):
+    # Changes a board coordinate into normal coordinates
+    pos_dict = {"a": 0, "b": 1, "c": 2}
+    x = pos_dict[pos[0]]
+    y = pos[1]
+    return (int(x), int(y))

@@ -21,12 +21,12 @@ def main():
                 print("Nobady wins")             
                 print("Black adjacent pairs : ",end='')
                 print(board_3x3.find_neighbors(1))
-                print("White adjacent pairs : ",end='')
-                print(board_3x3.find_neighbors(2))            
+                #print("White adjacent pairs : ",end='')
+                #print(board_3x3.find_neighbors(2))            
                 print("Black Bridges : ",end='')
-                print(board_3x3.find_bridge(1))
-                print("White Bridges : ",end='')
-                print(board_3x3.find_bridge(2))
+                print(board_3x3.find_substrategies())
+                #print("White Bridges : ",end='')
+                #print(board_3x3.find_bridge(2))
             elif board_3x3.detect_win() == 1:
                 print("Game ends,Black wins and no need to check patterns")
             else:
