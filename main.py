@@ -3,11 +3,13 @@ def main():
     # create an empty 3x3 Hex board
     board_3x3 = patterns.HexBoard(3)
     pos_dict = {'a': 0, 'b': 1, 'c': 2}
+    board_3x3.place_stone(1, 1, 1)
     print(board_3x3)
     while board_3x3.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
-        color = int(input("Enter color (0/1/2): "))
+        #color = int(input("Enter color (0/1/2): "))
+        color = 2
         try:
             assert 0 <= color <= 2
             assert pos[0] in pos_dict

@@ -49,7 +49,7 @@
 #           else play a1 OR c3
 
 import numpy as np
-
+import random
 # cell states
 UNOCCUPIED = 0
 BLACK = 1
@@ -60,18 +60,16 @@ class HexBoard():
     # intialize board state to all cells unoccupied
     def __init__(self, board_dimension):
         self.board_dimension = board_dimension
-        
+        self.unoccupied = []
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
-        
-        self.strategies = []
         
         # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
         for x in range(self.board_dimension):
             for y in range(self.board_dimension):
                 self.board_dict[(x,y)] = HexCell(x,y,self.board_dimension)
-        
+                self.unoccupied.append((x,y))
         # TODO: representation of board edges (top/bottom and left/right win conditions)
         
     def expand(self,pos1):
@@ -188,23 +186,35 @@ class HexBoard():
         self.board_array[y][x] = state
         cell = self.board_dict[(x,y)]
         cell.set_state(state)
-        
+        self.unoccupied.remove((x,y))    
         if state == WHITE:
-            self.search_strategies(coord_2_pos(x,y))
-        
+            x,y = self.search_strategies(x,y)
+            self.place_stone(x,y,BLACK)
     def find_substrategies(self):
-        self.find_bridge(1)
-        
-    def search_strategies(self, white_move):
-        for sub_strat in self.strategies:
-            for cell in sub_strat:
-                if white_move in sub_strat:
-                    # Response needed
-                    self.respond_to_bridge(sub_strat, white_move)
-                    
-    def respond_to_bridge(self, strat, white_move):
-        return
-    
+        return self.find_bridge(1)       
+    def search_strategies(self, x,y):
+        move_list = []
+        for pairs in self.find_substrategies():
+            for move in pairs:
+                move_list.append(move) #flatten the list here
+        white_move = coord_2_pos(x,y) #change the form of the white move
+        print(white_move)
+        print(move_list)
+        try:
+            index = move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
+            if index % 2 == 0:
+                coord = pos_2_coord(move_list[index+1])
+                
+                y = coord[1]
+            else:
+                coord = pos_2_coord(move_list[index-1])
+                x = coord[0]
+                y = coord[1]
+        except:
+            coord = random.choice(self.unoccupied)
+            x = coord[0]
+            y = coord[1]
+        return x,y
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
     def find_bridge(self,color):
         return_list = []
@@ -219,7 +229,7 @@ class HexBoard():
                 for cell_bridge in cell_bridges:
                     # Get the other cell that gets bridged to
                     cell_bridge = self.board_dict[cell_bridge]
-                    if cell_bridge.state == color:# and self.empty_pairs(cell):
+                    if cell_bridge.state == color and self.empty_pairs(cell):
                         # If the bridge cell is also the color we are looking for
                         # and the cells between them are empty, add the cells
                         # to the return list
@@ -240,8 +250,6 @@ class HexBoard():
                                     return_list.append((coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])))
                                     cell_nbrs.remove(overlap_cell)
                                     
-        for strat in return_list:
-            self.strategies.append(strat)
         return return_list
 
     def find_neighbors(self,color):
