@@ -183,28 +183,27 @@ class HexBoard():
     # TODO: methods for player interface for cell placement
     def place_stone(self, x, y, state):
         # Place a stone at the given x,y coordinate
+        substrategies = self.find_substrategies()
         self.board_array[y][x] = state
         cell = self.board_dict[(x,y)]
         cell.set_state(state)
         self.unoccupied.remove((x,y))    
         if state == WHITE:
-            x,y = self.search_strategies(x,y)
+            x,y = self.search_strategies(x,y,substrategies)
             self.place_stone(x,y,BLACK)
     def find_substrategies(self):
         return self.find_bridge(1)       
-    def search_strategies(self, x,y):
+    def search_strategies(self, x,y,substrategies):
         move_list = []
-        for pairs in self.find_substrategies():
+        for pairs in substrategies:
             for move in pairs:
                 move_list.append(move) #flatten the list here
         white_move = coord_2_pos(x,y) #change the form of the white move
-        print(white_move)
-        print(move_list)
         try:
             index = move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
             if index % 2 == 0:
                 coord = pos_2_coord(move_list[index+1])
-                
+                x = coord[0]
                 y = coord[1]
             else:
                 coord = pos_2_coord(move_list[index-1])
@@ -341,4 +340,4 @@ def pos_2_coord(pos):
     pos_dict = {"a": 0, "b": 1, "c": 2}
     x = pos_dict[pos[0]]
     y = pos[1]
-    return (int(x), int(y))
+    return (int(x), int(y)-1)
