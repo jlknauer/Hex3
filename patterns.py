@@ -191,8 +191,10 @@ class HexBoard():
         if state == WHITE:
             x,y = self.search_strategies(x,y,substrategies)
             self.place_stone(x,y,BLACK)
+            
     def find_substrategies(self):
-        return self.find_bridge(1)       
+        return self.find_bridge(1)  
+    
     def search_strategies(self, x,y,substrategies):
         move_list = []
         for pairs in substrategies:
@@ -247,7 +249,7 @@ class HexBoard():
                                 # If both cells are unoccupied and black edges, then a bridge exists between them
                                 if self.board_dict[overlap_cell].BLACK_EDGE and self.board_dict[nbr].BLACK_EDGE:
                                     return_list.append((coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])))
-                                    cell_nbrs.remove(overlap_cell)
+                                    #cell_nbrs.remove(overlap_cell)
                                     
         return return_list
 

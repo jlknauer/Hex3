@@ -19,16 +19,14 @@ def main():
         else:
             board_3x3.place_stone(pos_dict[pos[0]], int(pos[1])-1, color)
             print(board_3x3)
-            if board_3x3.detect_win() == 0:   
-                print("Nobady wins")             
+            if board_3x3.detect_win() == 0:
+                print("Nobody wins")             
                 print("Black adjacent pairs : ",end='')
                 print(board_3x3.find_neighbors(1))
-                #print("White adjacent pairs : ",end='')
-                #print(board_3x3.find_neighbors(2))            
+                         
                 print("Black Bridges : ",end='')
                 print(board_3x3.find_substrategies())
-                #print("White Bridges : ",end='')
-                #print(board_3x3.find_bridge(2))
+                
             elif board_3x3.detect_win() == 1:
                 print("Game ends,Black wins and no need to check patterns")
             else:
