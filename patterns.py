@@ -332,14 +332,14 @@ class HexCell():
     
 def coord_2_pos(x,y):
     # Changes a coordinate into board coordinate form
-    pos_dict = {0: "a", 1: "b", 2: "c"}
+    pos_dict = {0: "a", 1: "b", 2: "c", 3: "d"}
     x = pos_dict[x]
     y = str(y+1)
     return x + y
 
 def pos_2_coord(pos):
     # Changes a board coordinate into normal coordinates
-    pos_dict = {"a": 0, "b": 1, "c": 2}
+    pos_dict = {"a": 0, "b": 1, "c": 2, "d": 3}
     x = pos_dict[pos[0]]
     y = pos[1]
     return (int(x), int(y)-1)
