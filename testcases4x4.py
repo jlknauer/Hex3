@@ -5,7 +5,7 @@ def main():
     print("Case1:")
     board_nxn = patterns.HexBoard(n)
     board_nxn.place_stone(0,0,2)
-    board_nxn.place_stone(1,1,2)
+    board_nxn.place_stone(3,2,2)
     print(board_nxn)
     if board_nxn.detect_win() == 0:
         print("Nobady wins")
@@ -24,9 +24,9 @@ def main():
     #case 2
     print("\n Case2:")
     board_nxn = patterns.HexBoard(n)
-    board_nxn.place_stone(0,0,1)
-    board_nxn.place_stone(1,1,1)
-    board_nxn.place_stone(2,2,1)
+    board_nxn.place_stone(0,0,2)
+    board_nxn.place_stone(1,1,2)
+    board_nxn.place_stone(2,2,2)
     print(board_nxn)
     if board_nxn.detect_win() == 0:
         print("Nobady wins")
@@ -43,12 +43,12 @@ def main():
     else:
         print("Game ends,White wins and no need to check patterns")
     #case 3
-    print("\n Casen:")
+    print("\n Case 3:")
     board_nxn = patterns.HexBoard(n)
     board_nxn.place_stone(0,0,2)
-    board_nxn.place_stone(1,0,2)
+    board_nxn.place_stone(2,0,2)
 #    board_nxn.place_stone(0,1,2)
-    board_nxn.place_stone(0,2,2)
+    board_nxn.place_stone(3,2,2)
     print(board_nxn)
     if board_nxn.detect_win() == 0:
         print("Nobady wins")
@@ -68,9 +68,9 @@ def main():
     print("\n Case4:")
     board_nxn = patterns.HexBoard(n)
     board_nxn.place_stone(0,0,2)
-    board_nxn.place_stone(1,0,2)
+#    board_nxn.place_stone(1,0,2)
 #    board_nxn.place_stone(0,1,2)
-    board_nxn.place_stone(0,2,2)
+    board_nxn.place_stone(3,2,2)
 #    board_nxn.place_stone(2,1,2)
     print(board_nxn)
     if board_nxn.detect_win() == 0:
@@ -114,11 +114,11 @@ def main():
     #case6
     print("\n Case6:")
     board_nxn = patterns.HexBoard(n)
-    board_nxn.place_stone(0,0,1)
-    board_nxn.place_stone(1,1,1)
-    board_nxn.place_stone(2,2,1)
+    board_nxn.place_stone(0,0,2)
+    board_nxn.place_stone(1,1,2)
+    board_nxn.place_stone(2,2,2)
     board_nxn.place_stone(0,2,2)
-    board_nxn.place_stone(1,2,2)
+#    board_nxn.place_stone(1,2,2)
     print(board_nxn)
     if board_nxn.detect_win() == 0:
         print("Nobady wins")
