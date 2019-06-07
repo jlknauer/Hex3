@@ -25,6 +25,7 @@ class HexBoard():
             for y in range(self.board_dimension):
                 self.unoccupied[(x,y)] = HexCell(x,y)
         
+        self.white_response = (0,0)
         self.responses = {}
     
     # prints out current board state to the terminal 
@@ -76,6 +77,10 @@ class HexBoard():
         # play white stone
         if user_input[0] == 'w':
             self.place_stone(string.ascii_lowercase.index(user_input[2]), int(user_input[3:])-1, WHITE)
+            self.white_response = (string.ascii_lowercase.index(user_input[2]), int(user_input[3:])-1)
+            print(self.white_response)
+            if self.white_response in self.responses.keys():
+                print("BLACK RESPONSE TO WHITE: ", string.ascii_lowercase[self.responses[self.white_response][0]], self.responses[self.white_response][1]+1)
         # play black stone
         elif user_input[0] == 'b':
             self.place_stone(string.ascii_lowercase.index(user_input[2]), int(user_input[3:])-1, BLACK)
@@ -101,6 +106,7 @@ class HexBoard():
         return
     
     def search_strategies(self, player):
+        self.responses.clear()
         self.find_pseudobridge(player)
         if player == BLACK:
             print("BLACK STRATEGIES: ", self.responses)
