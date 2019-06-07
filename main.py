@@ -14,7 +14,7 @@ def main():
         try:
             assert 0 <= color <= 2
             assert pos[0] in pos_dict
-            assert 1 <= int(pos[1]) <= 3
+            assert 1 <= int(pos[1]) <= n
         except:
             print("Invalid values")
         else:
