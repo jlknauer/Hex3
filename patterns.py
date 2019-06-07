@@ -171,7 +171,7 @@ class HexBoard():
         
     def __repr__(self):
         # Returns a string representation of the board
-        board = " a b c\n"
+        board = " a b c d\n"
         for row in range(self.board_dimension):
             board += (' '*row) + str(row+1)
             for col in self.board_array[row]:

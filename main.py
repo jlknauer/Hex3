@@ -4,8 +4,10 @@ def main():
     # create an empty nxn Hex board
     board_nxn = patterns.HexBoard(n)
     pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3}
-    board_nxn.place_stone(1, 1, 1)
+    board_nxn.place_stone(2, 1, 1)
     print(board_nxn)
+    print("Black Bridges : ",end='')
+    print(board_nxn.find_substrategies())
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
@@ -22,8 +24,8 @@ def main():
             print(board_nxn)
             if board_nxn.detect_win() == 0:
                 print("Nobody wins")             
-                print("Black adjacent pairs : ",end='')
-                print(board_nxn.find_neighbors(1))
+                #print("Black adjacent pairs : ",end='')
+                #print(board_nxn.find_neighbors(1))
                          
                 print("Black Bridges : ",end='')
                 print(board_nxn.find_substrategies())
