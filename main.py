@@ -7,7 +7,9 @@ def main():
     board_nxn.place_stone(2, 1, 1)
     print(board_nxn)
     print("Black Bridges : ",end='')
-    print(board_nxn.find_substrategies())
+    print(board_nxn.find_bridge(1))
+    print("Black 432s : ",end='')
+    print(board_nxn.find_432())
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
@@ -26,10 +28,12 @@ def main():
                 print("Nobody wins")             
                 #print("Black adjacent pairs : ",end='')
                 #print(board_nxn.find_neighbors(1))
-                         
+                                    
                 print("Black Bridges : ",end='')
-                print(board_nxn.find_substrategies())
-                
+                print(board_nxn.find_bridge(1))
+                print("Black 432s : ",end='')
+                print(board_nxn.find_432())
+
             elif board_nxn.detect_win() == 1:
                 print("Game ends,Black wins and no need to check patterns")
             else:

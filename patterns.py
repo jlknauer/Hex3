@@ -61,6 +61,7 @@ class HexBoard():
     def __init__(self, board_dimension):
         self.board_dimension = board_dimension
         self.unoccupied = []
+        self.move_list = []
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
         
@@ -196,19 +197,23 @@ class HexBoard():
         return self.find_bridge(1)  
     
     def search_strategies(self, x,y,substrategies):
-        move_list = []
+        for pairs in self.find_432():
+            for move in pairs:
+                if move not in self.move_list:
+                    self.move_list.append(move)
         for pairs in substrategies:
             for move in pairs:
-                move_list.append(move) #flatten the list here
+                if move not in self.move_list:
+                    self.move_list.append(move) #flatten the list here
         white_move = coord_2_pos(x,y) #change the form of the white move
         try:
-            index = move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
+            index = self.move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
             if index % 2 == 0:
-                coord = pos_2_coord(move_list[index+1])
+                coord = pos_2_coord(self.move_list[index+1])
                 x = coord[0]
                 y = coord[1]
             else:
-                coord = pos_2_coord(move_list[index-1])
+                coord = pos_2_coord(self.move_list[index-1])
                 x = coord[0]
                 y = coord[1]
         except:
@@ -256,7 +261,6 @@ class HexBoard():
     def find_neighbors(self,color):
         # Find adjacent cells
         return_list = []
-        
         # Iterate through all cells
         for pos in self.board_dict:
             pos_color = self.board_dict[pos].state
@@ -272,7 +276,22 @@ class HexBoard():
                     if cell_nbr.state == color:
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
         return return_list
-
+    def find_432(self):
+        return_list = []
+        for pos in self.board_dict:
+            if self.board_dict[pos].state == BLACK:
+                temp_list = []
+                cell = self.board_dict[pos]
+                cell_432s = cell.get_432()
+                for cell_432 in cell_432s:
+                    cell_432 = self.board_dict[cell_432]
+                    temp_list.append(coord_2_pos(cell_432.x,cell_432.y))
+                    if cell_432.state != UNOCCUPIED:
+                        temp_list = []
+                        break
+                if temp_list != []:
+                    return_list.append(temp_list)
+        return return_list
     def empty_pairs (self,cell):
         # Find pairs of a cell, used for finding bridges between two cells
         pairs = cell.get_pairs()
@@ -313,7 +332,9 @@ class HexCell():
         self.bridges = [(x+1,y+1), (x-1,y+2), (x-2,y+1)]
         self.bridges = [coord for coord in self.bridges if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
-        
+        self.four32 = [(x+1,y),(x,y+1), (x-1,y+1),(x+1,y+1),(x-2,y+2),(x-1,y+2), (x,y+2),(x+1,y+2)]
+        self.four32 = [coord for coord in self.four32 if not \
+                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
     def set_state(self, state):
         self.state = state
         
@@ -325,7 +346,8 @@ class HexCell():
     
     def get_pairs(self):
         return self.pairs
-    
+    def get_432(self):
+        return self.four32
     def __repr__(self):
         # Represent in board coordinate form
         return coord_2_pos(self.x,self.y)
