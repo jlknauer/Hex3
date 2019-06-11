@@ -5,6 +5,7 @@ def main():
     board_nxn = patterns.HexBoard(n)
     pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3}
     board_nxn.place_stone(2, 1, 1)
+    board_nxn.update()
     print(board_nxn)
     print("Black Bridges : ",end='')
     print(board_nxn.find_bridge(1))
@@ -31,8 +32,8 @@ def main():
                                     
                 print("Black Bridges : ",end='')
                 print(board_nxn.find_bridge(1))
-                print("Black 432s : ",end='')
-                print(board_nxn.find_432())
+                #print("Black 432s : ",end='')
+                #print(board_nxn.find_432())
 
             elif board_nxn.detect_win() == 1:
                 print("Game ends,Black wins and no need to check patterns")
