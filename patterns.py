@@ -214,7 +214,7 @@ class HexBoard():
             for move in pairs:
                 if move not in self.move_list:
                     self.move_list.append(move) #flatten the list here
-        print(self.move_list)
+        #print(self.move_list)
         white_move = coord_2_pos(x,y) #change the form of the white move
         try:
             index = self.move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
