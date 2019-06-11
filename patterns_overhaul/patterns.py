@@ -38,6 +38,7 @@ class HexBoard():
 
         # black strategies updated for every pattern analysis following black placement
         self.responses = {}
+        self.virtual_connections = set()
         self.white_move = None
 
         # black opening move and pattern analysis
@@ -133,6 +134,7 @@ class HexBoard():
         """Populates responses following black move based on current board patterns
         """
         self.responses.clear()
+        self.virtual_connections.clear()
         self.find_pseudobridge()
         return
     
@@ -141,9 +143,15 @@ class HexBoard():
         """
         # check if white has placed
         if self.white_move != None:
-            black_move = self.responses[(self.white_move[0],self.white_move[1])]
-            self.place_stone(black_move[0], black_move[1], BLACK)
-    
+            try:
+                black_move = self.responses[(self.white_move[0],self.white_move[1])]
+                self.place_stone(black_move[0], black_move[1], BLACK)
+            # no response found; defualt to filling virtual connections
+            except:
+                black_move = self.virtual_connections.pop()
+                self.place_stone(black_move[0], black_move[1], BLACK)
+        return
+            
     def black_turn(self):
         """Driver for all the functions to run during black's turn
         """
@@ -164,7 +172,10 @@ class HexBoard():
                 # white plays bottom left VC
                 self.responses[(stone.x-1,stone.y+1)] = (stone.x,stone.y+1)
                 # white plays bottom right VC
-                self.responses[(stone.x,stone.y+1)] = (stone.x-1, stone.y+1)
+                self.responses[(stone.x,stone.y+1)] = (stone.x-1,stone.y+1)
+                # update VC set
+                self.virtual_connections.add((stone.x,stone.y+1))
+                self.virtual_connections.add((stone.x-1,stone.y+1))
             # top VC
             # check if in second row and for open VC
             if ((stone.x == 1) and
@@ -175,6 +186,9 @@ class HexBoard():
                 self.responses[(stone.x,stone.y-1)] = (stone.x+1,stone.y-1)
                 # white plays top right VC
                 self.responses[(stone.x+1,stone.y-1)] = (stone.x,stone.y-1)
+                # update VC set
+                self.virtual_connections.add((stone.x+1,stone.y-1))
+                self.virtual_connections.add((stone.x,stone.y-1))
         return
     
     @staticmethod
