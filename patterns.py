@@ -183,6 +183,10 @@ class HexBoard():
     # TODO: methods for starting the game (black first move along main diagonal)
     # TODO: methods for player interface for cell placement
     def place_stone(self, x, y, state):
+        for pairs in self.find_432():
+            for move in pairs:
+                if move not in self.move_list:
+                    self.move_list.append(move)
         # Place a stone at the given x,y coordinate
         substrategies = self.find_substrategies()
         self.board_array[y][x] = state
@@ -191,20 +195,26 @@ class HexBoard():
         self.unoccupied.remove((x,y))    
         if state == WHITE:
             x,y = self.search_strategies(x,y,substrategies)
-            self.place_stone(x,y,BLACK)
-            
-    def find_substrategies(self):
-        return self.find_bridge(1)  
-    
-    def search_strategies(self, x,y,substrategies):
+            try:
+                self.place_stone(x,y,BLACK)
+            except:
+                coord = random.choice(self.unoccupied)
+                x = coord[0]
+                y = coord[1]
+                self.place_stone(x,y,BLACK)
+    def update(self):
         for pairs in self.find_432():
             for move in pairs:
                 if move not in self.move_list:
-                    self.move_list.append(move)
+                    self.move_list.append(move)               
+    def find_substrategies(self):
+        return self.find_bridge(1)     
+    def search_strategies(self, x,y,substrategies):
         for pairs in substrategies:
             for move in pairs:
                 if move not in self.move_list:
                     self.move_list.append(move) #flatten the list here
+        print(self.move_list)
         white_move = coord_2_pos(x,y) #change the form of the white move
         try:
             index = self.move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
@@ -307,6 +317,7 @@ class HexCell():
     # initialize cell position and state
     # states: 0 - unoccupied, 1 - black occupied, 2 - white occupied
     def __init__(self, x, y, board_dimension, state=UNOCCUPIED):
+        
         self.x = x
         self.y = y
         # State is black, white, or unoccupied
