@@ -192,7 +192,8 @@ class HexBoard():
         self.board_array[y][x] = state
         cell = self.board_dict[(x,y)]
         cell.set_state(state)
-        self.unoccupied.remove((x,y))    
+        if (x,y) in self.unoccupied:
+            self.unoccupied.remove((x,y))    
         if state == WHITE:
             x,y = self.search_strategies(x,y,substrategies)
             try:
@@ -343,9 +344,9 @@ class HexCell():
         self.bridges = [(x+1,y+1), (x-1,y+2), (x-2,y+1)]
         self.bridges = [coord for coord in self.bridges if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
-        self.four32 = [(x+1,y),(x,y+1), (x-1,y+1),(x+1,y+1),(x-2,y+2),(x-1,y+2), (x,y+2),(x+1,y+2)]
-        self.four32 = [coord for coord in self.four32 if not \
-                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
+        
+        self.four32 = self.generate_432_patterns(x,y)
+        
     def set_state(self, state):
         self.state = state
         
@@ -357,8 +358,35 @@ class HexCell():
     
     def get_pairs(self):
         return self.pairs
+    
     def get_432(self):
         return self.four32
+    
+    def generate_432_patterns(self, x, y):
+        # Generates top to bottom 432 patterns
+        four32 = [[(x+1,y), (x,y+1),(x-1,y+1),(x+1,y+1), (x-2,y+2),(x-1,y+2),(x,y+2),(x+1,y+2)],\
+                  [(x-1,y), (x,y+1),(x-1,y+1),(x-2,y+1), (x-3,y+2),(x-2,y+2),(x-1,y+2),(x,y+2)],\
+                  [(x+1,y), (x,y-1),(x+1,y-1),(x+2,y-1), (x,y-2),(x+1,y-2),(x+2,y-2),(x+3,y-2)],\
+                  [(x-1,y), (x-1,y-1),(x,y-1),(x+1,y-1), (x-1,y-2),(x,y-2),(x+1,y-2),(x+2,y-2)]]
+        
+        # Goes through the four32 array and removes any patterns that have invalid
+        # coordinates contained in them
+        rm_list = []            
+        for pattern in four32:
+            new_pattern = [coord for coord in pattern if not \
+                       (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]            
+            if len(new_pattern) < 8:
+                # One coordinate was invalid, entire pattern does not work now
+                rm_list.append(pattern)
+        while len(rm_list) > 0:
+            # Remove the pattern
+            four32.remove(rm_list[0])
+            rm_list.remove(rm_list[0])
+        
+        print((x,y), four32)        
+        
+        return four32
+    
     def __repr__(self):
         # Represent in board coordinate form
         return coord_2_pos(self.x,self.y)
