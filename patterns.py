@@ -47,6 +47,11 @@
 # Strategy: if white plays a1 - black plays c3   
 #           else if white plays c3 - black plays a1
 #           else play a1 OR c3
+#
+# ISSUES
+# Not taking minimal winning strategy, is playing outside winning strategy
+# 432 pattern not being played properly
+# 432 only represented in 4 cases
 
 import numpy as np
 import random
@@ -203,13 +208,19 @@ class HexBoard():
                 x = coord[0]
                 y = coord[1]
                 self.place_stone(x,y,BLACK)
+                
     def update(self):
         for pairs in self.find_432():
             for move in pairs:
                 if move not in self.move_list:
-                    self.move_list.append(move)               
+                    self.move_list.append(move)
+                    
     def find_substrategies(self):
-        return self.find_bridge(1)     
+        bridges = self.find_bridge(1)
+        four32s = self.find_432()
+        print(bridges+four32s)
+        return bridges + four32s
+    
     def search_strategies(self, x,y,substrategies):
         for pairs in substrategies:
             for move in pairs:
@@ -232,6 +243,7 @@ class HexBoard():
             x = coord[0]
             y = coord[1]
         return x,y
+    
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
     def find_bridge(self,color):
         return_list = []
@@ -287,22 +299,25 @@ class HexBoard():
                     if cell_nbr.state == color:
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
         return return_list
+    
     def find_432(self):
         return_list = []
         for pos in self.board_dict:
             if self.board_dict[pos].state == BLACK:
                 temp_list = []
                 cell = self.board_dict[pos]
-                cell_432s = cell.get_432()
-                for cell_432 in cell_432s:
-                    cell_432 = self.board_dict[cell_432]
-                    temp_list.append(coord_2_pos(cell_432.x,cell_432.y))
-                    if cell_432.state != UNOCCUPIED:
-                        temp_list = []
-                        break
+                patterns = cell.get_432()
+                for cell_432s in patterns:
+                    for cell_432 in cell_432s:
+                        cell_432 = self.board_dict[cell_432]
+                        temp_list.append(coord_2_pos(cell_432.x,cell_432.y))
+                        if cell_432.state != UNOCCUPIED:
+                            temp_list = []
+                            break
                 if temp_list != []:
                     return_list.append(temp_list)
         return return_list
+    
     def empty_pairs (self,cell):
         # Find pairs of a cell, used for finding bridges between two cells
         pairs = cell.get_pairs()
@@ -382,8 +397,6 @@ class HexCell():
             # Remove the pattern
             four32.remove(rm_list[0])
             rm_list.remove(rm_list[0])
-        
-        print((x,y), four32)        
         
         return four32
     
