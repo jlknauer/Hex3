@@ -1,15 +1,15 @@
 def main():
-    pattern = ['d2', 'c3', 'b3', 'd3', 'a4', 'b4', 'c4', 'd4']
-    reply432(change_pattern(pattern), pos_2_coord('c2'))
+    pattern = ['d2', 'c3', 'b3', 'd3', 'a4', 'b4', 'c4', 'd4'] # Bottom Right
+    reply432(change_pattern(pattern), pos_2_coord('c2'), pos_2_coord('d3'))
     
-    #pattern = ['a3', 'a2', 'b2', 'c2', 'a1', 'b1', 'c1', 'd1']
-    #reply432(change_pattern(pattern), pos_2_coord('b3'))
+    pattern = ['a3', 'a2', 'b2', 'c2', 'a1', 'b1', 'c1', 'd1'] # Top Left
+    reply432(change_pattern(pattern), pos_2_coord('b3'), pos_2_coord('b2'))
     
-    #pattern = ['c2', 'b3', 'c3', 'd3', 'a4', 'b4', 'c4', 'd4']
-    #reply432(change_pattern(pattern), pos_2_coord('d2'))
+    pattern = ['c2', 'b3', 'c3', 'd3', 'a4', 'b4', 'c4', 'd4'] # Bottom Left
+    reply432(change_pattern(pattern), pos_2_coord('d2'), pos_2_coord('b3'))
     
-    #pattern = ['b3', 'a2', 'b2', 'c2', 'a1', 'b1', 'c1', 'd1']
-    #reply432(change_pattern(pattern), pos_2_coord('a3'))
+    pattern = ['b3', 'a2', 'b2', 'c2', 'a1', 'b1', 'c1', 'd1'] # Top Right
+    reply432(change_pattern(pattern), pos_2_coord('a3'), pos_2_coord('c2'))
 
 def pos_2_coord(pos):
     # Changes a board coordinate into normal coordinates
@@ -18,7 +18,8 @@ def pos_2_coord(pos):
     y = pos[1]
     return (int(x), int(y)-1)
 
-def reply432(pattern, black_pos):
+def reply432(pattern, black_pos, white_move):
+    # Finds a replying move in the 432 pattern
     max_x_dist = 0
     max_x_pos = None
     for coord in pattern:
@@ -27,7 +28,22 @@ def reply432(pattern, black_pos):
             max_x_dist = dist
             max_x_pos = coord
             
-    find_neighbours(max_x_pos[0], max_x_pos[1])
+    # Find the corner part of the triangle for the 432 pattern
+    if abs(max_x_dist) >= 3:
+        triangle_pos = (max_x_pos[0] - max_x_dist, max_x_pos[1])
+    else:
+        triangle_pos = max_x_pos
+        
+    # Find the last two cells to complete the triangle
+    triangle = [triangle_pos] + list(set(pattern) & set(find_neighbours(triangle_pos[0], triangle_pos[1])))
+    print(triangle)
+    
+    if white_move in triangle:
+        # Need to perform replying move in other 5 cells
+        pass
+    else:
+        # Need to perform replying move in triangle
+        pass
     return
 
 def change_pattern(pattern):
