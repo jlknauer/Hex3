@@ -172,7 +172,7 @@ class HexBoard():
         
     def __repr__(self):
         # Returns a string representation of the board
-        board = " a b c d\n"
+        board = " a b c d e f g h\n"
         for row in range(self.board_dimension):
             board += (' '*row) + str(row+1)
             for col in self.board_array[row]:
@@ -231,6 +231,7 @@ class HexBoard():
             x = coord[0]
             y = coord[1]
         return x,y
+
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
     def find_bridge(self,color):
         return_list = []
@@ -286,6 +287,7 @@ class HexBoard():
                     if cell_nbr.state == color:
                         return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
         return return_list
+
     def find_432(self):
         return_list = []
         for pos in self.board_dict:
@@ -365,14 +367,14 @@ class HexCell():
     
 def coord_2_pos(x,y):
     # Changes a coordinate into board coordinate form
-    pos_dict = {0: "a", 1: "b", 2: "c", 3: "d"}
+    pos_dict = {0: "a", 1: "b", 2: "c", 3: "d", 4: "e", 5: "f", 6: "g", 7: "h"}
     x = pos_dict[x]
     y = str(y+1)
     return x + y
 
 def pos_2_coord(pos):
     # Changes a board coordinate into normal coordinates
-    pos_dict = {"a": 0, "b": 1, "c": 2, "d": 3}
+    pos_dict = {"a": 0, "b": 1, "c": 2, "d": 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
     x = pos_dict[pos[0]]
     y = pos[1]
     return (int(x), int(y)-1)

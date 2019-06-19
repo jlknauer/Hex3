@@ -1,10 +1,10 @@
 import patterns
 def main():
-    n = 4
+    n = 8
     # create an empty nxn Hex board
     board_nxn = patterns.HexBoard(n)
-    pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3}
-    board_nxn.place_stone(2, 1, 1)
+    pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
+    board_nxn.place_stone(2, 4, 1)
     board_nxn.update()
     print(board_nxn)
     print("Black Bridges : ",end='')
