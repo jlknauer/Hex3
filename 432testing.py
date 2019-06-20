@@ -53,10 +53,6 @@ def reply432(pattern, black_pos, white_move):
     
     if white_move in triangle:
         # Need to perform replying move in other 5 cells
-        #five_pattern = []
-        #for cell in pattern:
-            #if cell not in triangle:
-                #five_pattern.append(cell)
         return five_pos
         
     else:

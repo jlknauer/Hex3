@@ -52,6 +52,7 @@
 # Not taking minimal winning strategy, is playing outside winning strategy
 # 432 pattern not being played properly
 # 432 only represented in 4 cases
+# 432 must be checked to be at edge or have cells that make it valid for connection
 
 import numpy as np
 import random
@@ -218,7 +219,6 @@ class HexBoard():
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
-        print(bridges+four32s)
         return bridges + four32s
     
     def search_strategies(self, x,y,substrategies):
@@ -317,6 +317,58 @@ class HexBoard():
                 if temp_list != []:
                     return_list.append(temp_list)
         return return_list
+    
+    def reply432(pattern, black_pos, white_move):
+        # Finds a replying move in the 432 pattern
+        max_x_dist = 0
+        max_x_pos = None
+        for coord in pattern:
+            dist = coord[0] - black_pos[0] # Distance between x values
+            if abs(dist) > abs(max_x_dist):
+                max_x_dist = dist
+                max_x_pos = coord
+                
+        # Find the corner part of the triangle for the 432 pattern and the connecting
+        # cell for the other 5 cells
+        if abs(max_x_dist) >= 3:
+            triangle_pos = (max_x_pos[0] - max_x_dist, max_x_pos[1])
+            
+            # Find connection cell for 5 pattern
+            if (max_x_pos[0] + 1, max_x_pos[1] - 1) in pattern:
+                five_pos = (max_x_pos[0] + 1, max_x_pos[1] - 1)
+            else:
+                five_pos = (max_x_pos[0] - 1, max_x_pos[1] + 1)
+        else:
+            triangle_pos = max_x_pos
+            
+            # Find connecting cell for 5 pattern
+            if (max_x_pos[0] - 3, max_x_pos[1] + 1) in pattern:
+                five_pos = (max_x_pos[0] - 3, max_x_pos[1] + 1)
+            else:
+                five_pos = (max_x_pos[0] + 3, max_x_pos[1] - 1)
+            
+        # Find the last two cells to complete the triangle
+        triangle = [triangle_pos] + list(set(pattern) & set(find_neighbours(triangle_pos[0], triangle_pos[1])))
+        print(triangle)
+        
+        if white_move in triangle:
+            # Need to perform replying move in other 5 cells
+            return five_pos
+            
+        else:
+            # Need to perform replying move in triangle
+            y_coords = ''
+            for coord in triangle:
+                y_coords += str(coord[1])
+            
+            for num in y_coords:
+                count = 0
+                for item in y_coords:
+                    if item == num:
+                        count += 1
+                if count == 1:
+                    return triangle[y_coords.index(num)]
+        return    
     
     def empty_pairs (self,cell):
         # Find pairs of a cell, used for finding bridges between two cells
