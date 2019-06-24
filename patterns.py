@@ -67,7 +67,7 @@ class HexBoard():
         self.move_list = []
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
-        
+        self.prority_list = ['d3','c5']
         # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
         for x in range(self.board_dimension):
@@ -175,7 +175,7 @@ class HexBoard():
         
     def __repr__(self):
         # Returns a string representation of the board
-        board = " a b c d\n"
+        board = " a b c d e f g h\n"
         for row in range(self.board_dimension):
             board += (' '*row) + str(row+1)
             for col in self.board_array[row]:
@@ -207,48 +207,52 @@ class HexBoard():
                 y = coord[1]
                 self.place_stone(x,y,BLACK)
                 
-    def update(self):
-        for pairs in self.find_432():
-            for move in pairs:
-                if move not in self.move_list:
-                    self.move_list.append(move)
+    # def update(self):
+    #     for pairs in self.find_432():
+    #         for move in pairs:
+    #             if move not in self.move_list:
+    #                 self.move_list.append(move)
                     
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
         return bridges + four32s
-    
     def search_strategies(self, x,y, substrategies):
         white_move = coord_2_pos(x,y)
-        
         # Find the strategy (if it exists) that white played in, then make a
         # replying move in that substrategy
         for strat in substrategies:
             if white_move in strat:
                 if len(strat) == 2: # Must be a bridge
                     move = self.reply_bridge(strat, white_move)
+                    print(move)
                     return move
                 else:
                     # Only other option is the 432 strategy
                     black_pos = strat[len(strat)-1]
                     move = self.reply432(strat, black_pos, white_move)
                     return move
-                    
-        # White move did not threaten any strategies, so choose a random strategy
-        # to play in
-        if substrategies != []:
-            strat = random.choice(substrategies)
-            if len(strat) == 2:
-                move = self.reply_bridge(strat, white_move)
-            else:
-                black_pos = strat[len(strat)-1]
-                move = self.reply432(strat, black_pos, white_move)
-            return move
-        else:
-            coord = random.choice(self.unoccupied)
+        if self.prority_list != []:
+            move = self.prority_list.pop()
+            coord = pos_2_coord(move)
             x = coord[0]
             y = coord[1]
             return x,y
+        # White move did not threaten any strategies, so choose a random strategy
+        # to play in
+        # if substrategies != []:
+        #     strat = random.choice(substrategies)
+        #     if len(strat) == 2:
+        #         move = self.reply_bridge(strat, white_move)
+        #     else:
+        #         black_pos = strat[len(strat)-1]
+        #         move = self.reply432(strat, black_pos, white_move)
+        #     return move
+        # else:
+        coord = random.choice(self.unoccupied)
+        x = coord[0]
+        y = coord[1]
+        return x,y
         #for pairs in substrategies:
             #for move in pairs:
                 #if move not in self.move_list:
