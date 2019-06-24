@@ -50,7 +50,6 @@
 #
 # ISSUES
 # 432 only represented in 4 cases
-# 432 must be checked to be at edge or have cells that make it valid for connection
 
 import numpy as np
 import random
@@ -337,8 +336,38 @@ class HexBoard():
                             temp_list = []
                             break
                 if temp_list != []:
-                    temp_list.append(coord_2_pos(pos[0],pos[1]))
-                    return_list.append(temp_list)
+                    edges = True
+                    
+                    # Determine whether the 432 is in an up or down formation
+                    y_change = -1
+                    if pos_2_coord(temp_list[4])[1] > pos_2_coord(temp_list[3])[1]:
+                        y_change = 1
+                    
+                    connected_list = []
+                    for cell_to_check in temp_list[4::]:
+                        if not self.board_dict[pos_2_coord(cell_to_check)].BLACK_EDGE:
+                            edges = False
+                        if not edges:
+                            # Check that all cells are connected above or below
+                            # to a black edge
+                            cell_coords = pos_2_coord(cell_to_check)
+                            neighbours = self.board_dict[cell_coords].get_neighbours()
+                            
+                            # Find the coordinates that need to be checked for
+                            # connection to allow for the 432 pattern to exist
+                            coords = [coord for coord in neighbours if \
+                                          cell_coords[1] + y_change == coord[1]]
+                            
+                            # Check that the required neighbours can connect above
+                            # or below, one of the neighbours must be black
+                            for nbr in coords:
+                                if self.board_dict[nbr].state == BLACK:
+                                    connected_list.append(cell_coords)
+                                    break
+                            
+                    if edges or len(connected_list) == 4:
+                        temp_list.append(coord_2_pos(pos[0],pos[1]))
+                        return_list.append(temp_list)
         return return_list
     
     def reply_bridge(self, pattern, white_move):

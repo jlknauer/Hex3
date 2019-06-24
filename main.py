@@ -4,7 +4,7 @@ def main():
     # create an empty nxn Hex board
     board_nxn = patterns.HexBoard(n)
     pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3}
-    board_nxn.place_stone(2, 1, 1)
+    board_nxn.place_stone(1, 2, 1)
     board_nxn.update()
     print(board_nxn)
     print("Black Bridges : ",end='')
