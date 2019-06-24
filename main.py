@@ -36,9 +36,9 @@ def main():
                 #print(board_nxn.find_432())
 
             elif board_nxn.detect_win() == 1:
-                print("Game ends,Black wins and no need to check patterns")
+                print("Game ends, black wins and no need to check patterns")
             else:
-                print("Game ends,White wins and no need to check patterns")
+                print("Game ends, white wins and no need to check patterns")
                 
 if __name__ == "__main__":
     main()

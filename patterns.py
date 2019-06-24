@@ -49,8 +49,6 @@
 #           else play a1 OR c3
 #
 # ISSUES
-# Not taking minimal winning strategy, is playing outside winning strategy
-# 432 pattern not being played properly
 # 432 only represented in 4 cases
 # 432 must be checked to be at edge or have cells that make it valid for connection
 
@@ -221,27 +219,51 @@ class HexBoard():
         four32s = self.find_432()
         return bridges + four32s
     
-    def search_strategies(self, x,y,substrategies):
-        for pairs in substrategies:
-            for move in pairs:
-                if move not in self.move_list:
-                    self.move_list.append(move) #flatten the list here
-        #print(self.move_list)
-        white_move = coord_2_pos(x,y) #change the form of the white move
-        try:
-            index = self.move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
-            if index % 2 == 0:
-                coord = pos_2_coord(self.move_list[index+1])
-                x = coord[0]
-                y = coord[1]
-            else:
-                coord = pos_2_coord(self.move_list[index-1])
-                x = coord[0]
-                y = coord[1]
-        except:
-            coord = random.choice(self.unoccupied)
-            x = coord[0]
-            y = coord[1]
+    def search_strategies(self, x,y, substrategies):
+        white_move = coord_2_pos(x,y)
+        
+        # Find the strategy (if it exists) that white played in, then make a
+        # replying move in that substrategy
+        for strat in substrategies:
+            if white_move in strat:
+                if len(strat) == 2: # Must be a bridge
+                    move = self.reply_bridge(strat, white_move)
+                    return move
+                else:
+                    # Only other option is the 432 strategy
+                    black_pos = strat[len(strat)-1]
+                    move = self.reply432(strat, black_pos, white_move)
+                    return move
+                    
+        # White move did not threaten any strategies, so choose a random strategy
+        # to play in
+        strat = random.choice(substrategies)
+        if len(strat) == 2:
+            move = self.reply_bridge(strat, white_move)
+        else:
+            black_pos = strat[len(strat)-1]
+            move = self.reply432(strat, black_pos, white_move)
+        return move
+        #for pairs in substrategies:
+            #for move in pairs:
+                #if move not in self.move_list:
+                    #self.move_list.append(move) #flatten the list here
+        
+        #white_move = coord_2_pos(x,y) #change the form of the white move
+        #try:
+            #index = self.move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
+            #if index % 2 == 0:
+                #coord = pos_2_coord(self.move_list[index+1])
+                #x = coord[0]
+                #y = coord[1]
+            #else:
+                #coord = pos_2_coord(self.move_list[index-1])
+                #x = coord[0]
+                #y = coord[1]
+        #except:
+            #coord = random.choice(self.unoccupied)
+            #x = coord[0]
+            #y = coord[1]
         return x,y
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
@@ -263,7 +285,7 @@ class HexBoard():
                         # and the cells between them are empty, add the cells
                         # to the return list
                         pairs = list(set(cell.get_neighbours()) & set(cell_bridge.get_neighbours()))
-                        return_list.append((coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])))
+                        return_list.append([coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])])
                 
                 # Find bridges that are edge bridges
                 cell_nbrs = cell.get_neighbours()
@@ -276,7 +298,7 @@ class HexBoard():
                             if self.board_dict[overlap_cell].state == UNOCCUPIED:
                                 # If both cells are unoccupied and black edges, then a bridge exists between them
                                 if self.board_dict[overlap_cell].BLACK_EDGE and self.board_dict[nbr].BLACK_EDGE:
-                                    return_list.append((coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])))
+                                    return_list.append([coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])])
                                     #cell_nbrs.remove(overlap_cell)
                                     
         return return_list
@@ -315,11 +337,27 @@ class HexBoard():
                             temp_list = []
                             break
                 if temp_list != []:
+                    temp_list.append(coord_2_pos(pos[0],pos[1]))
                     return_list.append(temp_list)
         return return_list
     
-    def reply432(pattern, black_pos, white_move):
+    def reply_bridge(self, pattern, white_move):
+        # Finds the replying move when a bridge has been threatened
+        if white_move in pattern:
+            # Remove the white move so black can take the other cell
+            pattern.remove(white_move)
+        # Return the replying move
+        return pos_2_coord(pattern[0])
+    
+    def reply432(self, pattern, black_pos, white_move):
         # Finds a replying move in the 432 pattern
+        # Convert all patterns/moves into coordinate form
+        pattern = self.change_pattern(pattern)
+        black_pos = pos_2_coord(black_pos)
+        white_move = pos_2_coord(white_move)
+        
+        # The max x distance between cells can tell us what type of 432 pattern
+        # we're dealing with
         max_x_dist = 0
         max_x_pos = None
         for coord in pattern:
@@ -348,10 +386,9 @@ class HexBoard():
                 five_pos = (max_x_pos[0] + 3, max_x_pos[1] - 1)
             
         # Find the last two cells to complete the triangle
-        triangle = [triangle_pos] + list(set(pattern) & set(find_neighbours(triangle_pos[0], triangle_pos[1])))
-        print(triangle)
+        triangle = [triangle_pos] + list(set(pattern) & set(self.board_dict[triangle_pos[0], triangle_pos[1]].get_neighbours()))
         
-        if white_move in triangle:
+        if white_move in triangle or white_move not in pattern:
             # Need to perform replying move in other 5 cells
             return five_pos
             
@@ -361,14 +398,23 @@ class HexBoard():
             for coord in triangle:
                 y_coords += str(coord[1])
             
+            # The replying move is the one with a different y coordinate
             for num in y_coords:
                 count = 0
                 for item in y_coords:
                     if item == num:
                         count += 1
                 if count == 1:
+                    # Only one of this y coordinate exists, so we need the cell
+                    # with that coordinate
                     return triangle[y_coords.index(num)]
-        return    
+        return
+    
+    def change_pattern(self, pattern):
+        # Converts a pattern from a list of positions to a list of coordinates
+        for i in range(len(pattern)):
+            pattern[i] = pos_2_coord(pattern[i])
+        return pattern
     
     def empty_pairs (self,cell):
         # Find pairs of a cell, used for finding bridges between two cells
