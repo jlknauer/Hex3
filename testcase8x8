@@ -1,0 +1,91 @@
+import patterns
+def main():
+    n = 8
+    #Case 1
+    print("Case1:")
+    board_nxn = patterns.HexBoard(n)
+    board_nxn.place_stone(1,1,2)
+    board_nxn.place_stone(2,2,2)
+    board_nxn.place_stone(3,3,2)
+    board_nxn.place_stone(4,4,2)
+    board_nxn.place_stone(4,5,2)
+    board_nxn.place_stone(5,6,2)
+    board_nxn.place_stone(6,6,2)
+    board_nxn.place_stone(7,7,2)
+    print(board_nxn)
+    if board_nxn.detect_win() == 0:
+        print("Nobady wins")
+        print("Black adjacent pairs : ",end='')
+        print(board_nxn.find_neighbors(1))
+        print("White adjacent pairs : ",end='')
+        print(board_nxn.find_neighbors(2))
+        print("Black Bridges : ",end='')
+        print(board_nxn.find_bridge(1))
+        print("White Bridges : ",end='')
+        print(board_nxn.find_bridge(2))
+    elif board_nxn.detect_win() == 1:
+        print("Game ends,Black wins and no need to check patterns")
+    else:
+        print("Game ends,White wins and no need to check patterns")
+    #case 2
+    print("\n Case2:")
+    board_nxn = patterns.HexBoard(n)
+    board_nxn.place_stone(7,2,2)
+    board_nxn.place_stone(6,3,2)
+    board_nxn.place_stone(5,3,2)
+    board_nxn.place_stone(4,4,2)
+    board_nxn.place_stone(3,5,2)
+    board_nxn.place_stone(2,6,2)
+    board_nxn.place_stone(1,6,2)
+    board_nxn.place_stone(0,6,2)
+    print(board_nxn)
+    if board_nxn.detect_win() == 0:
+        print("Nobady wins")
+        print("Black adjacent pairs : ",end='')
+        print(board_nxn.find_neighbors(1))
+        print("White adjacent pairs : ",end='')
+        print(board_nxn.find_neighbors(2))
+        print("Black Bridges : ",end='')
+        print(board_nxn.find_bridge(1))
+        print("White Bridges : ",end='')
+        print(board_nxn.find_bridge(2))
+    elif board_nxn.detect_win() == 1:
+        print("Game ends,Black wins and no need to check patterns")
+    else:
+        print("Game ends,White wins and no need to check patterns")
+
+    #case 3
+    print("\n Case 3:")
+    board_nxn = patterns.HexBoard(n)
+    board_nxn.place_stone(0,3,2)
+    board_nxn.place_stone(5,4,2)
+    board_nxn.place_stone(4,4,2)
+    board_nxn.place_stone(2,3,2)
+    board_nxn.place_stone(3,5,2)
+    board_nxn.place_stone(2,5,2)
+    board_nxn.place_stone(1,2,2)
+    board_nxn.place_stone(2,2,2)
+    board_nxn.place_stone(0,0,2)
+    board_nxn.place_stone(6,3,2)
+    board_nxn.place_stone(5,3,2)
+    board_nxn.place_stone(7,3,2)
+    board_nxn.place_stone(1,5,2)
+    board_nxn.place_stone(0,5,2)
+    print(board_nxn)
+    if board_nxn.detect_win() == 0:
+        print("Nobady wins")
+        print("Black adjacent pairs : ",end='')
+        print(board_nxn.find_neighbors(1))
+        print("White adjacent pairs : ",end='')
+        print(board_nxn.find_neighbors(2))
+        print("Black Bridges : ",end='')
+        print(board_nxn.find_bridge(1))
+        print("White Bridges : ",end='')
+        print(board_nxn.find_bridge(2))
+    elif board_nxn.detect_win() == 1:
+        print("Game ends,Black wins and no need to check patterns")
+    else:
+        print("Game ends,White wins and no need to check patterns")
+
+if __name__ == "__main__":
+    main()
