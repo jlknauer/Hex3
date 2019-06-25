@@ -4,6 +4,7 @@ def main():
     #Case 1
     print("Case1:")
     board_nxn = patterns.HexBoard(n)
+    board_nxn.place_stone(1, 6, 1)
     board_nxn.place_stone(1,1,2)
     board_nxn.place_stone(2,2,2)
     board_nxn.place_stone(3,3,2)
@@ -30,6 +31,7 @@ def main():
     #case 2
     print("\n Case2:")
     board_nxn = patterns.HexBoard(n)
+    board_nxn.place_stone(1, 6, 1)
     board_nxn.place_stone(7,2,2)
     board_nxn.place_stone(6,3,2)
     board_nxn.place_stone(5,3,2)
@@ -57,6 +59,7 @@ def main():
     #case 3
     print("\n Case 3:")
     board_nxn = patterns.HexBoard(n)
+    board_nxn.place_stone(1, 6, 1)
     board_nxn.place_stone(0,3,2)
     board_nxn.place_stone(5,4,2)
     board_nxn.place_stone(4,4,2)
