@@ -67,7 +67,7 @@ class HexBoard():
         self.move_list = []
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
-        self.prority_list = ['d3','c5']
+        self.priority_list = ['d3','c5']
         # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
         for x in range(self.board_dimension):
@@ -225,54 +225,36 @@ class HexBoard():
             if white_move in strat:
                 if len(strat) == 2: # Must be a bridge
                     move = self.reply_bridge(strat, white_move)
-                    print(move)
                     return move
                 else:
                     # Only other option is the 432 strategy
                     black_pos = strat[len(strat)-1]
                     move = self.reply432(strat, black_pos, white_move)
                     return move
-        if self.prority_list != []:
-            move = self.prority_list.pop()
+                
+        if self.priority_list != []:
+            move = self.priority_list.pop()
             coord = pos_2_coord(move)
             x = coord[0]
             y = coord[1]
             return x,y
+        
         # White move did not threaten any strategies, so choose a random strategy
         # to play in
-        # if substrategies != []:
-        #     strat = random.choice(substrategies)
-        #     if len(strat) == 2:
-        #         move = self.reply_bridge(strat, white_move)
-        #     else:
-        #         black_pos = strat[len(strat)-1]
-        #         move = self.reply432(strat, black_pos, white_move)
-        #     return move
-        # else:
-        coord = random.choice(self.unoccupied)
-        x = coord[0]
-        y = coord[1]
-        return x,y
-        #for pairs in substrategies:
-            #for move in pairs:
-                #if move not in self.move_list:
-                    #self.move_list.append(move) #flatten the list here
+        if substrategies != []:
+            strat = random.choice(substrategies)
+            if len(strat) == 2:
+                move = self.reply_bridge(strat, white_move)
+            else:
+                black_pos = strat[len(strat)-1]
+                move = self.reply432(strat, black_pos, white_move)
+            return move
+        else:
+            # No strategy, play randomly
+            coord = random.choice(self.unoccupied)
+            x = coord[0]
+            y = coord[1]
         
-        #white_move = coord_2_pos(x,y) #change the form of the white move
-        #try:
-            #index = self.move_list.index(white_move) #The function will return the min number, so we don't have to worry about prority here if the self.stategies is sorted
-            #if index % 2 == 0:
-                #coord = pos_2_coord(self.move_list[index+1])
-                #x = coord[0]
-                #y = coord[1]
-            #else:
-                #coord = pos_2_coord(self.move_list[index-1])
-                #x = coord[0]
-                #y = coord[1]
-        #except:
-            #coord = random.choice(self.unoccupied)
-            #x = coord[0]
-            #y = coord[1]
         return x,y
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
@@ -332,53 +314,64 @@ class HexBoard():
         return return_list
     
     def find_432(self):
+        # Return all 432 patterns that are on the board
         return_list = []
         for pos in self.board_dict:
+            # Can only have the 432 pattern if the cell contains a black cell
             if self.board_dict[pos].state == BLACK:
-                temp_list = []
                 cell = self.board_dict[pos]
+                
+                # Get all possible 432 patterns at that cell, then verify they
+                # exist
                 patterns = cell.get_432()
                 for cell_432s in patterns:
+                    temp_list = []
                     for cell_432 in cell_432s:
                         cell_432 = self.board_dict[cell_432]
                         temp_list.append(coord_2_pos(cell_432.x,cell_432.y))
+                        
+                        # The cells must be unoccupied to have the 432 pattern
                         if cell_432.state != UNOCCUPIED:
                             temp_list = []
                             break
-                if temp_list != []:
-                    edges = True
-                    
-                    # Determine whether the 432 is in an up or down formation
-                    y_change = -1
-                    #print(temp_list[4])
-                    if pos_2_coord(temp_list[4])[1] > pos_2_coord(temp_list[3])[1]:
-                        y_change = 1
-                    
-                    connected_list = []
-                    for cell_to_check in temp_list[4::]:
-                        if not self.board_dict[pos_2_coord(cell_to_check)].BLACK_EDGE:
-                            edges = False
-                        if not edges:
-                            # Check that all cells are connected above or below
-                            # to a black edge
-                            cell_coords = pos_2_coord(cell_to_check)
-                            neighbours = self.board_dict[cell_coords].get_neighbours()
-                            
-                            # Find the coordinates that need to be checked for
-                            # connection to allow for the 432 pattern to exist
-                            coords = [coord for coord in neighbours if \
+                        
+                    if temp_list != []:
+                        edges = True
+                        
+                        # Determine whether the 432 is in an up or down formation
+                        y_change = -1
+                        if pos_2_coord(temp_list[4])[1] > pos_2_coord(temp_list[3])[1]:
+                            y_change = 1
+                        
+                        connected_list = []
+                        for cell_to_check in temp_list[4::]:
+                            if not self.board_dict[pos_2_coord(cell_to_check)].BLACK_EDGE:
+                                # Not at an edge, must check the 432 can still exist
+                                edges = False
+                                
+                            if not edges:
+                                # Check that all cells are connected above or below
+                                # to a black edge
+                                cell_coords = pos_2_coord(cell_to_check)
+                                neighbours = self.board_dict[cell_coords].get_neighbours()
+                                
+                                # Find the coordinates that need to be checked for
+                                # connection to allow for the 432 pattern to exist
+                                coords = [coord for coord in neighbours if \
                                           cell_coords[1] + y_change == coord[1]]
+                                
+                                # Check that the required neighbours can connect above
+                                # or below, one of the neighbours must be black
+                                for nbr in coords:
+                                    if self.board_dict[nbr].state == BLACK:
+                                        connected_list.append(cell_coords)
+                                        break
+                                
+                        if edges or len(connected_list) == 4:
+                            # 432 exists, add it to the return list
+                            temp_list.append(coord_2_pos(pos[0],pos[1]))
+                            return_list.append(temp_list)
                             
-                            # Check that the required neighbours can connect above
-                            # or below, one of the neighbours must be black
-                            for nbr in coords:
-                                if self.board_dict[nbr].state == BLACK:
-                                    connected_list.append(cell_coords)
-                                    break
-                            
-                    if edges or len(connected_list) == 4:
-                        temp_list.append(coord_2_pos(pos[0],pos[1]))
-                        return_list.append(temp_list)
         return return_list
     
     def reply_bridge(self, pattern, white_move):
