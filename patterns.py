@@ -186,15 +186,22 @@ class HexBoard():
     # TODO: methods for starting the game (black first move along main diagonal)
     # TODO: methods for player interface for cell placement
     def place_stone(self, x, y, state):
+        cell = self.board_dict[(x,y)]
+        # Check the cell is valid to play in, if not return
+        if cell.state == UNOCCUPIED:
+            # Place a stone at the given x,y coordinate
+            substrategies = self.find_substrategies()
+            self.board_array[y][x] = state            
+            cell.set_state(state)
+        else:
+            print("Cell occupied, choose another cell")
+            return
+        
         for pairs in self.find_432():
             for move in pairs:
                 if move not in self.move_list:
                     self.move_list.append(move)
-        # Place a stone at the given x,y coordinate
-        substrategies = self.find_substrategies()
-        self.board_array[y][x] = state
-        cell = self.board_dict[(x,y)]
-        cell.set_state(state)
+            
         if (x,y) in self.unoccupied:
             self.unoccupied.remove((x,y))    
         if state == WHITE:
@@ -206,17 +213,12 @@ class HexBoard():
                 x = coord[0]
                 y = coord[1]
                 self.place_stone(x,y,BLACK)
-                
-    # def update(self):
-    #     for pairs in self.find_432():
-    #         for move in pairs:
-    #             if move not in self.move_list:
-    #                 self.move_list.append(move)
                     
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
         return bridges + four32s
+    
     def search_strategies(self, x,y, substrategies):
         white_move = coord_2_pos(x,y)
         # Find the strategy (if it exists) that white played in, then make a
@@ -271,12 +273,13 @@ class HexBoard():
                 for cell_bridge in cell_bridges:
                     # Get the other cell that gets bridged to
                     cell_bridge = self.board_dict[cell_bridge]
-                    if cell_bridge.state == color and self.empty_pairs(cell):
+                    if cell_bridge.state == color:
                         # If the bridge cell is also the color we are looking for
                         # and the cells between them are empty, add the cells
                         # to the return list
                         pairs = list(set(cell.get_neighbours()) & set(cell_bridge.get_neighbours()))
-                        return_list.append([coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])])
+                        if self.board_dict[pairs[0]].state == UNOCCUPIED and self.board_dict[pairs[1]].state == UNOCCUPIED:
+                            return_list.append([coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])])
                 
                 # Find bridges that are edge bridges
                 cell_nbrs = cell.get_neighbours()
@@ -448,16 +451,6 @@ class HexBoard():
         for i in range(len(pattern)):
             pattern[i] = pos_2_coord(pattern[i])
         return pattern
-    
-    def empty_pairs (self,cell):
-        # Find pairs of a cell, used for finding bridges between two cells
-        pairs = cell.get_pairs()
-        for pair in pairs:
-            cell = self.board_dict[pair]
-            color = cell.state
-            if color != 0:
-                return False
-        return True
 
 # representation of individual board cells
 class HexCell():
@@ -484,9 +477,7 @@ class HexCell():
         self.neighbours = [(x+1,y), (x+1,y-1), (x,y+1), (x,y-1), (x-1,y),(x-1,y+1)]
         self.neighbours = [coord for coord in self.neighbours if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
-        self.pairs = [(x+1,y),(x,y+1)]
-        self.pairs = [coord for coord in self.pairs if not \
-                           (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
+
         self.bridges = [(x+1,y+1), (x-1,y+2), (x-2,y+1)]
         self.bridges = [coord for coord in self.bridges if not \
                            (coord[0] < 0 or coord[0] >= self.board_dimension or coord[1] < 0 or coord[1] >= self.board_dimension)]
@@ -501,9 +492,6 @@ class HexCell():
     
     def get_bridges(self):
         return self.bridges
-    
-    def get_pairs(self):
-        return self.pairs
     
     def get_432(self):
         return self.four32
