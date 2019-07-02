@@ -15,12 +15,10 @@ def main():
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
-        #color = int(input("Enter color (0/1/2): "))
         color = 2
         try:
-            assert 0 <= color <= 2
             assert pos[0] in pos_dict
-            assert 1 <= int(pos[1]) <= n
+            assert 1 <= int(pos[1::]) <= n
         except:
             print("Invalid values")
         else:
@@ -37,9 +35,9 @@ def main():
                 print(board_nxn.find_432())
 
             elif board_nxn.detect_win() == 1:
-                print("Game ends,Black wins and no need to check patterns")
+                print("Game ends, black wins and no need to check patterns")
             else:
-                print("Game ends,White wins and no need to check patterns")
+                print("Game ends, white wins and no need to check patterns")
                 
 if __name__ == "__main__":
     main()

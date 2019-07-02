@@ -50,6 +50,7 @@
 #
 # ISSUES
 # 432 only represented in 4 cases
+# Stealing priority positions
 
 import numpy as np
 import random
@@ -190,9 +191,9 @@ class HexBoard():
         # Check the cell is valid to play in, if not return
         if cell.state == UNOCCUPIED:
             # Place a stone at the given x,y coordinate
-            substrategies = self.find_substrategies()
-            self.board_array[y][x] = state            
             cell.set_state(state)
+            substrategies = self.find_substrategies()
+            self.board_array[y][x] = state
         else:
             print("Cell occupied, choose another cell")
             return
@@ -217,7 +218,8 @@ class HexBoard():
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
-        return bridges + four32s
+        open4x4 = self.find_open4x4()
+        return bridges + four32s + open4x4
     
     def search_strategies(self, x,y, substrategies):
         white_move = coord_2_pos(x,y)
@@ -376,6 +378,41 @@ class HexBoard():
                             return_list.append(temp_list)
                             
         return return_list
+    
+    def find_open4x4(self):
+        # Finds connected 4x4 positions with all cells being empty
+        return_list = []
+        for x in range(self.board_dimension-3):
+            for y in range(self.board_dimension-3):
+                # Cells contains the potential cells for the 4x4 pattern
+                cells = self.find_4x4(x,y)
+                
+                # Check all the cells are empty
+                empty = self.check_all_empty(cells)
+                if empty:
+                    # Need to check that both sides are connected now
+                    print(x,y, empty, cells)
+            
+        return return_list
+    
+    def find_4x4(self, x, y):
+        # Finds a 4x4 grid using the x,y given, moving from left to right
+        return_list = []
+        for plus_x in range(4):
+            for plus_y in range(4):
+                return_list.append((x+plus_x, y+plus_y))
+                
+        return return_list
+    
+    def check_all_empty(self, cells_to_check):
+        # Takes a list of cells and checks that each cell is unoccupied
+        # cells_to_check should be in coordinate form, not position
+        for cell in cells_to_check:
+            if self.board_dict[cell].state != UNOCCUPIED:
+                # Cell is taken, all cells are not empty
+                return False
+            
+        return True
     
     def reply_bridge(self, pattern, white_move):
         # Finds the replying move when a bridge has been threatened
