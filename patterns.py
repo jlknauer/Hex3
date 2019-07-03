@@ -68,7 +68,7 @@ class HexBoard():
         self.move_list = []
         # Create the 2D array to keep track of the board position
         self.board_array = np.zeros((self.board_dimension, self.board_dimension), int)
-        self.priority_list = ['d3','c5']
+        self.priority_list = ['c5', 'd3']
         # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
         for x in range(self.board_dimension):
@@ -218,8 +218,8 @@ class HexBoard():
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
-        open4x4 = self.find_open4x4()
-        return bridges + four32s + open4x4
+        sixes = self.find_six()
+        return bridges + four32s + sixes
     
     def search_strategies(self, x,y, substrategies):
         white_move = coord_2_pos(x,y)
@@ -236,7 +236,7 @@ class HexBoard():
                     move = self.reply432(strat, black_pos, white_move)
                     return move
                 
-        if self.priority_list != []:
+        if self.priority_list != [] and white_move not in self.priority_list:
             move = self.priority_list.pop()
             coord = pos_2_coord(move)
             x = coord[0]
@@ -379,8 +379,57 @@ class HexBoard():
                             
         return return_list
     
+    def find_six(self):
+        # Finds 6 open spots by 2 adjacent black coloured cells
+        return_list = []
+        potential_sixes = []
+        for pos in self.board_dict:
+            if self.board_dict[pos].state != BLACK:
+                continue
+            if pos[1] >= self.board_dimension-2 or pos[1] < 2:
+                # Pattern won't apply here, continue to next position
+                continue
+            
+            # An adjacent cell must be black to have this pattern work
+            adjacents = [(pos[0]-1,pos[1]), (pos[0]+1,pos[1])]
+            for coord in adjacents:
+                # Check the coordinate exists in the board
+                if coord[0] >= 0 and coord[0] < self.board_dimension:
+                    if self.board_dict[coord].state == BLACK:
+                        # Two adjacent black cells exist
+                        # Find the minimum x position to begin generating patterns
+                        if pos[0] < coord[0]:
+                            min_x_pos = pos
+                        else:
+                            min_x_pos = coord
+                            
+                        x = min_x_pos[0]
+                        y = min_x_pos[1]
+                        if x > 0:
+                            # Can have a down six pattern
+                            pattern = [(x-1,y+1), (x-1,y+2), (x,y+1), (x,y+2), (x+1,y+1), (x+1,y+2)]
+                            empty = self.check_all_empty(pattern)
+                            if empty:
+                                potential_sixes.append(pattern + [pos, coord])
+                                
+                        if x + 1 < self.board_dimension-1:
+                            # Can have an up six pattern
+                            pattern = [(x+2,y-1), (x+2,y-2), (x+1,y-1), (x+1,y-2), (x,y-1), (x,y-2)]
+                            empty = self.check_all_empty(pattern)
+                            if empty:
+                                potential_sixes.append(pattern + [pos, coord])
+                                
+        # Lastly need to check the potential sixes connect two sides
+        for pattern in potential_sixes:
+            for cell in pattern[0:6]:
+                continue
+        
+        return return_list
+    
     def find_open4x4(self):
         # Finds connected 4x4 positions with all cells being empty
+        # Currently do not use, issues come with how strategies has been implemented
+        # and how this pattern would be used
         return_list = []
         for x in range(self.board_dimension-3):
             for y in range(self.board_dimension-3):
@@ -391,7 +440,7 @@ class HexBoard():
                 empty = self.check_all_empty(cells)
                 if empty:
                     # Need to check that both sides are connected now
-                    print(x,y, empty, cells)
+                    pass
             
         return return_list
     

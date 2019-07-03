@@ -7,11 +7,17 @@ def main():
     #board_nxn.place_stone(0, 2, 1)
     #board_nxn.place_stone(3, 2, 1)
     board_nxn.place_stone(1, 6, 1)
+    
+    board_nxn.place_stone(1,2,1)
+    board_nxn.place_stone(2,2,1)
+    
     print(board_nxn)
     print("Black Bridges : ",end='')
     print(board_nxn.find_bridge(1))
     print("Black 432s : ",end='')
     print(board_nxn.find_432())
+    print("Black Six Patterns : ",end='')
+    print(board_nxn.find_six())
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
