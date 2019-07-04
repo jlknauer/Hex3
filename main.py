@@ -16,8 +16,8 @@ def main():
     print(board_nxn.find_bridge(1))
     print("Black 432s : ",end='')
     print(board_nxn.find_432())
-    print("Black Six Patterns : ",end='')
-    print(board_nxn.find_six())
+    print("Black Double Triangles : ",end='')
+    print(board_nxn.find_double_triangle())
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")

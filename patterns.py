@@ -191,8 +191,8 @@ class HexBoard():
         # Check the cell is valid to play in, if not return
         if cell.state == UNOCCUPIED:
             # Place a stone at the given x,y coordinate
-            cell.set_state(state)
             substrategies = self.find_substrategies()
+            cell.set_state(state)
             self.board_array[y][x] = state
         else:
             print("Cell occupied, choose another cell")
@@ -218,8 +218,8 @@ class HexBoard():
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
-        sixes = self.find_six()
-        return bridges + four32s + sixes
+        double_triangles = self.find_double_triangle()
+        return bridges + four32s + double_triangles
     
     def search_strategies(self, x,y, substrategies):
         white_move = coord_2_pos(x,y)
@@ -379,10 +379,10 @@ class HexBoard():
                             
         return return_list
     
-    def find_six(self):
+    def find_double_triangle(self):
         # Finds 6 open spots by 2 adjacent black coloured cells
         return_list = []
-        potential_sixes = []
+        potential_patterns = []
         for pos in self.board_dict:
             if self.board_dict[pos].state != BLACK:
                 continue
@@ -410,19 +410,36 @@ class HexBoard():
                             pattern = [(x-1,y+1), (x-1,y+2), (x,y+1), (x,y+2), (x+1,y+1), (x+1,y+2)]
                             empty = self.check_all_empty(pattern)
                             if empty:
-                                potential_sixes.append(pattern + [pos, coord])
+                                potential_patterns.append(pattern + [pos, coord])
                                 
                         if x + 1 < self.board_dimension-1:
                             # Can have an up six pattern
                             pattern = [(x+2,y-1), (x+2,y-2), (x+1,y-1), (x+1,y-2), (x,y-1), (x,y-2)]
                             empty = self.check_all_empty(pattern)
                             if empty:
-                                potential_sixes.append(pattern + [pos, coord])
+                                potential_patterns.append(pattern + [pos, coord])
                                 
         # Lastly need to check the potential sixes connect two sides
-        for pattern in potential_sixes:
+        for pattern in potential_patterns:
+            all_connected = True
             for cell in pattern[0:6]:
-                continue
+                if self.board_dict[cell].BLACK_EDGE:
+                    continue
+                else:
+                    nbrs = self.board_dict[cell].get_neighbours()
+                    nbrs = [nbr for nbr in nbrs if not nbr[1] == cell[1]]
+                    # Check the neighbour is connected above or below
+                    connected = False
+                    for nbr in nbrs:
+                        if self.board_dict[nbr].state == BLACK:
+                            connected = True
+                    
+                    if not connected:
+                        all_connected = False
+                        
+            # If all the cells connect up or down the pattern exists
+            if all_connected:
+                return_list.append(self.change_pattern(pattern))
         
         return return_list
     
@@ -533,9 +550,15 @@ class HexBoard():
         return
     
     def change_pattern(self, pattern):
-        # Converts a pattern from a list of positions to a list of coordinates
-        for i in range(len(pattern)):
-            pattern[i] = pos_2_coord(pattern[i])
+        if type(pattern[0]) == str:
+            # Converts a pattern from a list of positions to a list of coordinates
+            for i in range(len(pattern)):
+                pattern[i] = pos_2_coord(pattern[i])
+                
+        else:
+            # Converts a pattern from a list of coordinates to a list of positions
+            for i in range(len(pattern)):
+                pattern[i] = coord_2_pos(pattern[i][0], pattern[i][1])
         return pattern
 
 # representation of individual board cells
