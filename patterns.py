@@ -218,8 +218,8 @@ class HexBoard():
     def find_substrategies(self):
         bridges = self.find_bridge(1)
         four32s = self.find_432()
-        double_triangles = self.find_double_triangle()
-        return bridges + four32s + double_triangles
+        adjacents = self.find_adjacent_patterns()
+        return bridges + adjacents + four32s
     
     def search_strategies(self, x,y, substrategies):
         white_move = coord_2_pos(x,y)
@@ -227,17 +227,7 @@ class HexBoard():
         # replying move in that substrategy
         for strat in substrategies:
             if white_move in strat:
-                if len(strat) == 2: # Must be a bridge
-                    move = self.reply_bridge(strat, white_move)
-                    return move
-                elif len(strat) == 6: # Must be a double triangle
-                    move = self.reply_double_triangle(strat, white_move)
-                    return move
-                else:
-                    # Only other option is the 432 strategy
-                    black_pos = strat[len(strat)-1]
-                    move = self.reply432(strat, black_pos, white_move)
-                    return move
+                return self.get_move(strat, white_move)
                 
         if self.priority_list != [] and white_move not in self.priority_list:
             move = self.priority_list.pop()
@@ -250,12 +240,7 @@ class HexBoard():
         # to play in
         if substrategies != []:
             strat = random.choice(substrategies)
-            if len(strat) == 2:
-                move = self.reply_bridge(strat, white_move)
-            else:
-                black_pos = strat[len(strat)-1]
-                move = self.reply432(strat, black_pos, white_move)
-            return move
+            return self.get_move(strat, white_move)
         else:
             # No strategy, play randomly
             coord = random.choice(self.unoccupied)
@@ -263,6 +248,20 @@ class HexBoard():
             y = coord[1]
         
         return x,y
+    
+    def get_move(self, strat, white_move):
+        # Find the pattern white is threatening and reply
+        if strat[len(strat)-1] == 2: # Bridge is pattern 2
+            move = self.reply_bridge(strat[0:len(strat)-1], white_move)
+        elif strat[len(strat)-1] == 3: # Pattern 3
+            move = self.reply_jyp3(strat[0:len(strat)-1], white_move)
+        elif strat[len(strat)-1] == 6: # Double triangle is pattern 6
+            move = self.reply_double_triangle(strat[0:len(strat)-1], white_move)
+        else:
+            # Only other option is the 432 strategy
+            black_pos = strat[len(strat)-2]
+            move = self.reply432(strat[0:len(strat)-1], black_pos, white_move)
+        return move        
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
     def find_bridge(self,color):
@@ -284,7 +283,7 @@ class HexBoard():
                         # to the return list
                         pairs = list(set(cell.get_neighbours()) & set(cell_bridge.get_neighbours()))
                         if self.board_dict[pairs[0]].state == UNOCCUPIED and self.board_dict[pairs[1]].state == UNOCCUPIED:
-                            return_list.append([coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])])
+                            return_list.append([coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])] + [2])
                 
                 # Find bridges that are edge bridges
                 cell_nbrs = cell.get_neighbours()
@@ -297,28 +296,9 @@ class HexBoard():
                             if self.board_dict[overlap_cell].state == UNOCCUPIED:
                                 # If both cells are unoccupied and black edges, then a bridge exists between them
                                 if self.board_dict[overlap_cell].BLACK_EDGE and self.board_dict[nbr].BLACK_EDGE:
-                                    return_list.append([coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])])
+                                    return_list.append([coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])] + [2])
                                     #cell_nbrs.remove(overlap_cell)
                                     
-        return return_list
-
-    def find_neighbors(self,color):
-        # Find adjacent cells
-        return_list = []
-        # Iterate through all cells
-        for pos in self.board_dict:
-            pos_color = self.board_dict[pos].state
-            # Check the cell has the same colour as the one required
-            if pos_color == color:
-                cell = self.board_dict[pos]
-                # Find the neighbours of the cell
-                cell_nbrs = cell.get_neighbours()
-                for cell_nbr in cell_nbrs:
-                    cell_nbr = self.board_dict[cell_nbr]
-                    # If the neighbour has the needed colour, add it to the
-                    # return list with the other cell
-                    if cell_nbr.state == color:
-                        return_list.append((coord_2_pos(pos[0],pos[1]),coord_2_pos(cell_nbr.x,cell_nbr.y)))
         return return_list
     
     def find_432(self):
@@ -378,19 +358,15 @@ class HexBoard():
                         if edges or len(connected_list) == 4:
                             # 432 exists, add it to the return list
                             temp_list.append(coord_2_pos(pos[0],pos[1]))
-                            return_list.append(temp_list)
+                            return_list.append(temp_list + [5])
                             
         return return_list
     
-    def find_double_triangle(self):
-        # Finds 6 open spots by 2 adjacent black coloured cells
+    def find_adjacent_patterns(self):
+        # Finds patterns that require two adjacent black coloured cells
         return_list = []
-        potential_patterns = []
         for pos in self.board_dict:
             if self.board_dict[pos].state != BLACK:
-                continue
-            if pos[1] >= self.board_dimension-2 or pos[1] < 2:
-                # Pattern won't apply here, continue to next position
                 continue
             
             # An adjacent cell must be black to have this pattern work
@@ -400,32 +376,78 @@ class HexBoard():
                 if coord[0] >= 0 and coord[0] < self.board_dimension:
                     if self.board_dict[coord].state == BLACK:
                         # Two adjacent black cells exist
-                        # Find the minimum x position to begin generating patterns
-                        if pos[0] < coord[0]:
-                            min_x_pos = pos
-                        else:
-                            min_x_pos = coord
-                            
-                        x = min_x_pos[0]
-                        y = min_x_pos[1]
-                        if x > 0:
-                            # Can have a down six pattern
-                            pattern = [(x-1,y+1), (x-1,y+2), (x,y+1), (x,y+2), (x+1,y+1), (x+1,y+2)]
-                            empty = self.check_all_empty(pattern)
-                            if empty:
-                                potential_patterns.append(pattern)
-                                
-                        if x + 1 < self.board_dimension-1:
-                            # Can have an up six pattern
-                            pattern = [(x+2,y-1), (x+2,y-2), (x+1,y-1), (x+1,y-2), (x,y-1), (x,y-2)]
-                            empty = self.check_all_empty(pattern)
-                            if empty:
-                                potential_patterns.append(pattern)
+                        # Patterns with "jyp#" stands for Jing Yang Pattern # 
+                        return_list = self.find_double_triangle(pos, coord, return_list)
+                        return_list = self.find_jyp3(pos, coord, return_list)
+                        
+        return return_list
+    
+    def find_jyp3(self, pos1, pos2, return_list):
+        # Finds the 3rd Jing Yang Pattern on the 8x8 board
+        potential_patterns = []
+        # We'll choose to position based on the first given black cell
+        x = pos1[0]
+        y = pos1[1]
+        if x >= 2 and y < self.board_dimension-2 and self.board_dict[(x, y+1)].state == WHITE:
+            # Pattern having a white stone here means could have a down pattern
+            pattern = [(x-1,y+1), (x-2,y+2), (x-1,y+2), (x+1,y+1), (x,y+2), (x+1,y+2)]
+            if self.check_all_empty(pattern):
+                potential_patterns.append(pattern + [3])
+        
+        elif x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1, y-1)].state == WHITE:
+            # Pattern having a white stone here means could have an up pattern
+            pattern = [(x,y-1), (x,y-2), (x+1,y-2), (x+2,y-1), (x+2,y-2), (x+3,y-2)]
+            if self.check_all_empty(pattern):
+                potential_patterns.append(pattern + [3])
+        
+        else:
+            # Pattern does not exist since it doesn't have the white stone required
+            return return_list
+        
+        # Now need to check all the potential patterns are connected
+        return_list = self.connected_ud_pattern(potential_patterns, return_list)
+        
+        return return_list
+    
+    def find_double_triangle(self, pos1, pos2, return_list):
+        # Finds 6 open spots by 2 adjacent black coloured cells
+        # pos and coord are the 2 adjacent cells that are black coloured
+        potential_patterns = []
+
+        # Find the minimum x position to begin generating patterns
+        if pos1[0] < pos2[0]:
+            min_x_pos = pos1
+        else:
+            min_x_pos = pos2
+            
+        x = min_x_pos[0]
+        y = min_x_pos[1]
+        if x > 0 and y < self.board_dimension-2:
+            # Can have a down six pattern
+            pattern = [(x-1,y+1), (x-1,y+2), (x,y+1), (x,y+2), (x+1,y+1), (x+1,y+2)]
+            empty = self.check_all_empty(pattern)
+            if empty:
+                potential_patterns.append(pattern + [6])
+                
+        if x + 1 < self.board_dimension-1 and y > 1:
+            # Can have an up six pattern
+            pattern = [(x+2,y-1), (x+2,y-2), (x+1,y-1), (x+1,y-2), (x,y-1), (x,y-2)]
+            empty = self.check_all_empty(pattern)
+            if empty:
+                potential_patterns.append(pattern + [6])
                                 
         # Lastly need to check the potential sixes connect two sides
+        return_list = self.connected_ud_pattern(potential_patterns, return_list)
+        
+        return return_list
+    
+    def connected_ud_pattern(self, potential_patterns, return_list):
+        # Determines if all cells in potential patterns are connected up or down
+        # Important to note this function does not allow side (same y) connections
         for pattern in potential_patterns:
             all_connected = True
-            for cell in pattern:
+            # Don't include the last element since it just identifies the pattern
+            for cell in pattern[0:len(pattern)-1]:
                 if self.board_dict[cell].BLACK_EDGE:
                     continue
                 else:
@@ -442,10 +464,10 @@ class HexBoard():
                         
             # If all the cells connect up or down the pattern exists
             if all_connected:
-                pattern = self.change_pattern(pattern)
+                pattern = self.change_pattern(pattern[0:len(pattern)-1]) + [pattern[len(pattern)-1]]
                 if pattern not in return_list:
                     return_list.append(pattern)
-        
+                    
         return return_list
     
     def find_open4x4(self):
@@ -562,6 +584,15 @@ class HexBoard():
             return pos_2_coord(triangle2[1])
         else:
             return pos_2_coord(triangle1[1])
+        
+    def reply_jyp3(self, pattern, white_move):
+        triangle1 = pattern[0:3]
+        triangle2 = pattern[3:6]
+        
+        if white_move in triangle1:
+            return pos_2_coord(triangle2[0])
+        else:
+            return pos_2_coord(triangle1[0])
     
     def change_pattern(self, pattern):
         if type(pattern[0]) == str:

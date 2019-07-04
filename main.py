@@ -8,13 +8,16 @@ def main():
     #board_nxn.place_stone(3, 2, 1)
     board_nxn.place_stone(1, 6, 1)
     
+    board_nxn.place_stone(4,1,2)
+    board_nxn.place_stone(4,2,1)
+    
     print(board_nxn)
     print("Black Bridges : ",end='')
     print(board_nxn.find_bridge(1))
     print("Black 432s : ",end='')
     print(board_nxn.find_432())
-    print("Black Double Triangles : ",end='')
-    print(board_nxn.find_double_triangle())
+    print("Black Adjacents : ",end='')
+    print(board_nxn.find_adjacent_patterns())
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
@@ -36,8 +39,8 @@ def main():
                 print(board_nxn.find_bridge(1))
                 print("Black 432s : ",end='')
                 print(board_nxn.find_432())
-                print("Black Double Triangles : ",end='')
-                print(board_nxn.find_double_triangle())                
+                print("Black Adjacents : ",end='')
+                print(board_nxn.find_adjacent_patterns())                
 
             elif board_nxn.detect_win() == 1:
                 print("Game ends, black wins and no need to check patterns")
