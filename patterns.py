@@ -230,6 +230,9 @@ class HexBoard():
                 if len(strat) == 2: # Must be a bridge
                     move = self.reply_bridge(strat, white_move)
                     return move
+                elif len(strat) == 6: # Must be a double triangle
+                    move = self.reply_double_triangle(strat, white_move)
+                    return move
                 else:
                     # Only other option is the 432 strategy
                     black_pos = strat[len(strat)-1]
@@ -410,19 +413,19 @@ class HexBoard():
                             pattern = [(x-1,y+1), (x-1,y+2), (x,y+1), (x,y+2), (x+1,y+1), (x+1,y+2)]
                             empty = self.check_all_empty(pattern)
                             if empty:
-                                potential_patterns.append(pattern + [pos, coord])
+                                potential_patterns.append(pattern)
                                 
                         if x + 1 < self.board_dimension-1:
                             # Can have an up six pattern
                             pattern = [(x+2,y-1), (x+2,y-2), (x+1,y-1), (x+1,y-2), (x,y-1), (x,y-2)]
                             empty = self.check_all_empty(pattern)
                             if empty:
-                                potential_patterns.append(pattern + [pos, coord])
+                                potential_patterns.append(pattern)
                                 
         # Lastly need to check the potential sixes connect two sides
         for pattern in potential_patterns:
             all_connected = True
-            for cell in pattern[0:6]:
+            for cell in pattern:
                 if self.board_dict[cell].BLACK_EDGE:
                     continue
                 else:
@@ -439,7 +442,9 @@ class HexBoard():
                         
             # If all the cells connect up or down the pattern exists
             if all_connected:
-                return_list.append(self.change_pattern(pattern))
+                pattern = self.change_pattern(pattern)
+                if pattern not in return_list:
+                    return_list.append(pattern)
         
         return return_list
     
@@ -548,6 +553,15 @@ class HexBoard():
                     # with that coordinate
                     return triangle[y_coords.index(num)]
         return
+    
+    def reply_double_triangle(self, pattern, white_move):
+        triangle1 = pattern[0:3]
+        triangle2 = pattern[3:6]
+        
+        if white_move in triangle1:
+            return pos_2_coord(triangle2[1])
+        else:
+            return pos_2_coord(triangle1[1])
     
     def change_pattern(self, pattern):
         if type(pattern[0]) == str:
