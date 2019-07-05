@@ -48,6 +48,8 @@
 #           else if white plays c3 - black plays a1
 #           else play a1 OR c3
 #
+# Jing Yang patterns: https://www.researchgate.net/publication/228970285_A_New_Solution_for_7x7_Hex_Game
+#
 # ISSUES
 # 432 only represented in 4 cases
 # Stealing priority positions
@@ -253,14 +255,13 @@ class HexBoard():
         # Find the pattern white is threatening and reply
         if strat[len(strat)-1] == 2: # Bridge is pattern 2
             move = self.reply_bridge(strat[0:len(strat)-1], white_move)
-        elif strat[len(strat)-1] == 3: # Pattern 3
-            move = self.reply_jyp3(strat[0:len(strat)-1], white_move)
-        elif strat[len(strat)-1] == 6: # Double triangle is pattern 6
-            move = self.reply_double_triangle(strat[0:len(strat)-1], white_move)
-        else:
+        elif strat[len(strat)-1] == 5: # 432 strategy
             # Only other option is the 432 strategy
             black_pos = strat[len(strat)-2]
             move = self.reply432(strat[0:len(strat)-1], black_pos, white_move)
+        else:
+            # Other options are all split options, only need to call the one function
+            move = self.reply_two_part(strat[0:len(strat)-1], white_move)
         return move        
     
     # TODO: methods for pattern recognition based on board state (bridge, pair, adjacent)
@@ -295,7 +296,7 @@ class HexBoard():
                         for overlap_cell in bridge_cell:
                             if self.board_dict[overlap_cell].state == UNOCCUPIED:
                                 # If both cells are unoccupied and black edges, then a bridge exists between them
-                                if self.board_dict[overlap_cell].BLACK_EDGE and self.board_dict[nbr].BLACK_EDGE:
+                                if self.board_dict[overlap_cell].is_black_edge() and self.board_dict[nbr].is_black_edge():
                                     return_list.append([coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])] + [2])
                                     #cell_nbrs.remove(overlap_cell)
                                     
@@ -333,7 +334,7 @@ class HexBoard():
                         
                         connected_list = []
                         for cell_to_check in temp_list[4::]:
-                            if not self.board_dict[pos_2_coord(cell_to_check)].BLACK_EDGE:
+                            if not self.board_dict[pos_2_coord(cell_to_check)].is_black_edge():
                                 # Not at an edge, must check the 432 can still exist
                                 edges = False
                                 
@@ -379,11 +380,12 @@ class HexBoard():
                         # Patterns with "jyp#" stands for Jing Yang Pattern # 
                         return_list = self.find_double_triangle(pos, coord, return_list)
                         return_list = self.find_jyp3(pos, coord, return_list)
+                        return_list = self.find_jyp4(pos, coord, return_list)
                         
         return return_list
     
     def find_jyp3(self, pos1, pos2, return_list):
-        # Finds the 3rd Jing Yang Pattern on the 8x8 board
+        # Finds the 3rd Jing Yang pattern
         potential_patterns = []
         # We'll choose to position based on the first given black cell
         x = pos1[0]
@@ -405,8 +407,47 @@ class HexBoard():
             return return_list
         
         # Now need to check all the potential patterns are connected
-        return_list = self.connected_ud_pattern(potential_patterns, return_list)
+        for pattern in potential_patterns:
+            if self.connected_ud_pattern(pattern):
+                pattern = self.change_pattern(pattern[0:len(pattern)-1]) + [pattern[len(pattern)-1]]
+                if pattern not in return_list:
+                    return_list.append(pattern)
         
+        return return_list
+    
+    def find_jyp4(self, pos1, pos2, return_list):
+        # Finds the 4th Jing Yang pattern
+        potential_patterns = []
+        
+        x = pos1[0]
+        y = pos1[1]
+        if x > 0 and x < self.board_dimension-2 and y < self.board_dimension-2 and \
+           self.board_dict[(x,y+2)].state == WHITE:
+            # Need these conditions for the downward version of this pattern
+            pattern = [(x-1,y+2), (x-1,y+1), (x,y+1), (x+2,y+1), (x+2,y), (x+1,y+1), (x+1,y+2), (x+2,y+2)]
+            if self.check_all_empty(pattern):
+                # If all cells empty we will have this pattern if both sides connect
+                potential_patterns.append(pattern + [4])
+                
+        elif x > 0 and x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1,y-2)].state == WHITE:
+            # Need these conditions for the upward version of this pattern
+            pattern = [(x+2,y-2), (x+2,y-1), (x+1,y-1), (x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2)]
+            if self.check_all_empty(pattern):
+                potential_patterns.append(pattern + [4])
+                
+        else:
+            # Pattern doesn't exist for these adjacent cells, return
+            return return_list
+        
+        # Any potential patterns that are fully connected up/down depending on
+        # the pattern get added to the return list
+        cells_to_be_checked = [pattern[0]] + pattern[6:8]
+        for pattern in potential_patterns:
+            if self.connected_ud_pattern(cells_to_be_checked):
+                pattern = self.change_pattern(pattern[0:len(pattern)-1]) + [pattern[len(pattern)-1]]
+                if pattern not in return_list:
+                    return_list.append(pattern)
+            
         return return_list
     
     def find_double_triangle(self, pos1, pos2, return_list):
@@ -424,51 +465,53 @@ class HexBoard():
         y = min_x_pos[1]
         if x > 0 and y < self.board_dimension-2:
             # Can have a down six pattern
-            pattern = [(x-1,y+1), (x-1,y+2), (x,y+1), (x,y+2), (x+1,y+1), (x+1,y+2)]
+            pattern = [(x-1,y+2), (x-1,y+1), (x,y+1), (x+1,y+1), (x,y+2), (x+1,y+2)]
             empty = self.check_all_empty(pattern)
             if empty:
                 potential_patterns.append(pattern + [6])
                 
         if x + 1 < self.board_dimension-1 and y > 1:
             # Can have an up six pattern
-            pattern = [(x+2,y-1), (x+2,y-2), (x+1,y-1), (x+1,y-2), (x,y-1), (x,y-2)]
+            pattern = [(x+2,y-2), (x+2,y-1), (x+1,y-1), (x,y-1), (x+1,y-2), (x,y-2)]
             empty = self.check_all_empty(pattern)
             if empty:
                 potential_patterns.append(pattern + [6])
                                 
         # Lastly need to check the potential sixes connect two sides
-        return_list = self.connected_ud_pattern(potential_patterns, return_list)
-        
-        return return_list
-    
-    def connected_ud_pattern(self, potential_patterns, return_list):
-        # Determines if all cells in potential patterns are connected up or down
-        # Important to note this function does not allow side (same y) connections
         for pattern in potential_patterns:
-            all_connected = True
-            # Don't include the last element since it just identifies the pattern
-            for cell in pattern[0:len(pattern)-1]:
-                if self.board_dict[cell].BLACK_EDGE:
-                    continue
-                else:
-                    nbrs = self.board_dict[cell].get_neighbours()
-                    nbrs = [nbr for nbr in nbrs if not nbr[1] == cell[1]]
-                    # Check the neighbour is connected above or below
-                    connected = False
-                    for nbr in nbrs:
-                        if self.board_dict[nbr].state == BLACK:
-                            connected = True
-                    
-                    if not connected:
-                        all_connected = False
-                        
-            # If all the cells connect up or down the pattern exists
-            if all_connected:
+            if self.connected_ud_pattern(pattern):
                 pattern = self.change_pattern(pattern[0:len(pattern)-1]) + [pattern[len(pattern)-1]]
                 if pattern not in return_list:
                     return_list.append(pattern)
-                    
+        
         return return_list
+    
+    def connected_ud_pattern(self, pattern):
+        # Determines if all cells in potential patterns are connected up or down
+        # Important to note this function does not allow side (same y) connections
+        all_connected = True
+        # Don't include the last element since it just identifies the pattern
+        for cell in pattern[0:len(pattern)-1]:
+            if self.board_dict[cell].is_black_edge():
+                continue
+            else:
+                nbrs = self.board_dict[cell].get_neighbours()
+                nbrs = [nbr for nbr in nbrs if not nbr[1] == cell[1]]
+                # Check the neighbour is connected above or below
+                connected = False
+                for nbr in nbrs:
+                    if self.board_dict[nbr].state == BLACK:
+                        connected = True
+                        break
+                
+                if not connected:
+                    all_connected = False
+                    
+        # If all the cells connect up or down the pattern exists
+        if all_connected:
+            return True
+        else:
+            return False
     
     def find_open4x4(self):
         # Finds connected 4x4 positions with all cells being empty
@@ -575,24 +618,18 @@ class HexBoard():
                     # with that coordinate
                     return triangle[y_coords.index(num)]
         return
-    
-    def reply_double_triangle(self, pattern, white_move):
-        triangle1 = pattern[0:3]
-        triangle2 = pattern[3:6]
         
-        if white_move in triangle1:
-            return pos_2_coord(triangle2[1])
+    def reply_two_part(self, pattern, white_move):
+        # This function takes a pattern that can be broken into two parts, where
+        # if played in one part the replying move is in the other part. The
+        # replying moves are at the start of the split in each case
+        part1 = pattern[0:3]
+        part2 = pattern[3::]
+        
+        if white_move in part1:
+            return pos_2_coord(part2[0])
         else:
-            return pos_2_coord(triangle1[1])
-        
-    def reply_jyp3(self, pattern, white_move):
-        triangle1 = pattern[0:3]
-        triangle2 = pattern[3:6]
-        
-        if white_move in triangle1:
-            return pos_2_coord(triangle2[0])
-        else:
-            return pos_2_coord(triangle1[0])
+            return pos_2_coord(part1[0])
     
     def change_pattern(self, pattern):
         if type(pattern[0]) == str:
@@ -649,6 +686,9 @@ class HexCell():
     
     def get_432(self):
         return self.four32
+    
+    def is_black_edge(self):
+        return self.BLACK_EDGE
     
     def generate_432_patterns(self, x, y):
         # Generates top to bottom 432 patterns
