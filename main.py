@@ -8,8 +8,8 @@ def main():
     #board_nxn.place_stone(3, 2, 1)
     board_nxn.place_stone(1, 6, 1) ######## MAIN POSITION ########
     
-    #board_nxn.place_stone(3,4,2)
-    #board_nxn.place_stone(4,2,1)
+    #board_nxn.place_stone(2,7,2)
+    #board_nxn.place_stone(3,5,1)
     #board_nxn.place_stone(2,5,1)
     #board_nxn.place_stone(4,5,1)
     

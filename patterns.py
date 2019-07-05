@@ -53,6 +53,8 @@
 # ISSUES
 # 432 only represented in 4 cases
 # Stealing priority positions
+#
+# Currently missing JY patterns 7,8
 
 import numpy as np
 import random
@@ -423,27 +425,32 @@ class HexBoard():
         y = pos1[1]
         if x > 0 and x < self.board_dimension-2 and y < self.board_dimension-2 and \
            self.board_dict[(x,y+2)].state == WHITE:
-            # Need these conditions for the downward version of this pattern
-            pattern = [(x-1,y+2), (x-1,y+1), (x,y+1), (x+2,y+1), (x+2,y), (x+1,y+1), (x+1,y+2), (x+2,y+2)]
-            if self.check_all_empty(pattern):
-                # If all cells empty we will have this pattern if both sides connect
-                potential_patterns.append(pattern + [4])
+            # Need these conditions for the down-right version of this pattern
+            potential_patterns.append([(x-1,y+2), (x-1,y+1), (x,y+1), (x+2,y+1), (x+2,y), (x+1,y+1), (x+1,y+2), (x+2,y+2), 4])
+        
+        elif x > 2 and x < self.board_dimension-1 and y < self.board_dimension-2 and \
+             self.board_dict[(x-1,y+2)].state == WHITE:
+            # Need these conditions for the down-left version of this pattern
+            potential_patterns.append([(x,y+2), (x+1,y+1), (x,y+1), (x-2,y+1), (x-1,y), (x-1,y+1), (x-3,y+2), (x-2,y+2), 4])
                 
         elif x > 0 and x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1,y-2)].state == WHITE:
-            # Need these conditions for the upward version of this pattern
-            pattern = [(x+2,y-2), (x+2,y-1), (x+1,y-1), (x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2)]
-            if self.check_all_empty(pattern):
-                potential_patterns.append(pattern + [4])
+            # Need these conditions for the up-left version of this pattern
+            potential_patterns.append([(x+2,y-2), (x+2,y-1), (x+1,y-1), (x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2), 4])
                 
+        elif x < self.board_dimension-4 and y > 1 and self.board_dict[(x+2,y-2)].state == WHITE:
+            # Need these conditions for the up-right version of this pattern
+            potential_patterns.append([(x+1,y-2), (x,y-1), (x+1,y-1), (x+3,y-1), (x+2,y), (x+2,y-1), (x+3,y-2), (x+4,y-2), 4])
+            
         else:
             # Pattern doesn't exist for these adjacent cells, return
             return return_list
         
         # Any potential patterns that are fully connected up/down depending on
         # the pattern get added to the return list
-        cells_to_be_checked = [pattern[0]] + pattern[6:8]
         for pattern in potential_patterns:
-            if self.connected_ud_pattern(cells_to_be_checked):
+            cells_to_be_checked = [pattern[0]] + pattern[6:8]
+            # Check cells are empty and connected
+            if self.check_all_empty(pattern[0:len(pattern)-1]) and self.connected_ud_pattern(cells_to_be_checked):
                 pattern = self.change_pattern(pattern[0:len(pattern)-1]) + [pattern[len(pattern)-1]]
                 if pattern not in return_list:
                     return_list.append(pattern)
