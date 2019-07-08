@@ -4,22 +4,19 @@ def main():
     # create an empty nxn Hex board
     board_nxn = patterns.HexBoard(n)
     pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-    #board_nxn.place_stone(0, 2, 1)
-    #board_nxn.place_stone(3, 2, 1)
     board_nxn.place_stone(1, 6, 1) ######## MAIN POSITION ########
     
-    #board_nxn.place_stone(2,7,2)
+    #board_nxn.place_stone(2,4,2)
+    #board_nxn.place_stone(3,2,1)
+    #board_nxn.place_stone(0,5,1)
     #board_nxn.place_stone(3,5,1)
-    #board_nxn.place_stone(2,5,1)
-    #board_nxn.place_stone(4,5,1)
-    
+        
     print(board_nxn)
-    print("Black Bridges : ",end='')
-    print(board_nxn.find_bridge(1))
-    print("Black 432s : ",end='')
-    print(board_nxn.find_432())
+    print("Single Patterns : ",end='')
+    print(board_nxn.find_single_patterns())
     print("Black Adjacents : ",end='')
     print(board_nxn.find_adjacent_patterns())
+    
     while board_nxn.detect_win() == 0:
         print("\n")
         pos = input("Enter move (ie a2): ")
@@ -33,14 +30,10 @@ def main():
             board_nxn.place_stone(pos_dict[pos[0]], int(pos[1])-1, color)
             print(board_nxn)
             if board_nxn.detect_win() == 0:
-                print("Nobody wins")             
-                #print("Black adjacent pairs : ",end='')
-                #print(board_nxn.find_neighbors(1))
+                print("Nobody wins")
                                     
-                print("Black Bridges : ",end='')
-                print(board_nxn.find_bridge(1))
-                print("Black 432s : ",end='')
-                print(board_nxn.find_432())
+                print("Single Patterns : ",end='')
+                print(board_nxn.find_single_patterns())
                 print("Black Adjacents : ",end='')
                 print(board_nxn.find_adjacent_patterns())                
 
