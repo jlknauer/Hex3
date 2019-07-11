@@ -268,7 +268,8 @@ class HexBoard():
         elif strat[len(strat)-1] == 9:
             move = self.reply_two_part(strat[0:len(strat)-1], white_move, 5)
         else:
-            # Other options are all split options, only need to call the one function
+            # Other options are all split options with a triangle,
+            # only need to call the one function
             move = self.reply_two_part(strat[0:len(strat)-1], white_move)
         return move
     
@@ -417,15 +418,11 @@ class HexBoard():
             if self.check_all_empty(pattern):
                 potential_patterns.append(pattern + [3])
         
-        elif x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1, y-1)].get_state() == WHITE:
+        if x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1, y-1)].get_state() == WHITE:
             # Pattern having a white stone here means could have an up pattern
             pattern = [(x,y-1), (x,y-2), (x+1,y-2), (x+2,y-1), (x+2,y-2), (x+3,y-2)]
             if self.check_all_empty(pattern):
                 potential_patterns.append(pattern + [3])
-        
-        else:
-            # Pattern does not exist since it doesn't have the white stone required
-            return return_list
         
         # Now need to check all the potential patterns are connected
         for pattern in potential_patterns:
@@ -447,22 +444,18 @@ class HexBoard():
             # Need these conditions for the down-right version of this pattern
             potential_patterns.append([(x-1,y+2), (x-1,y+1), (x,y+1), (x+2,y+1), (x+2,y), (x+1,y+1), (x+1,y+2), (x+2,y+2)])
         
-        elif x > 2 and x < self.board_dimension-1 and y < self.board_dimension-2 and \
+        if x > 2 and x < self.board_dimension-1 and y < self.board_dimension-2 and \
              self.board_dict[(x-1,y+2)].get_state() == WHITE:
             # Need these conditions for the down-left version of this pattern
             potential_patterns.append([(x,y+2), (x+1,y+1), (x,y+1), (x-2,y+1), (x-1,y), (x-1,y+1), (x-3,y+2), (x-2,y+2)])
                 
-        elif x > 0 and x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
+        if x > 0 and x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
             # Need these conditions for the up-left version of this pattern
             potential_patterns.append([(x+2,y-2), (x+2,y-1), (x+1,y-1), (x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2)])
                 
-        elif x < self.board_dimension-4 and y > 1 and self.board_dict[(x+2,y-2)].get_state() == WHITE:
+        if x < self.board_dimension-4 and y > 1 and self.board_dict[(x+2,y-2)].get_state() == WHITE:
             # Need these conditions for the up-right version of this pattern
             potential_patterns.append([(x+1,y-2), (x,y-1), (x+1,y-1), (x+3,y-1), (x+2,y), (x+2,y-1), (x+3,y-2), (x+4,y-2)])
-            
-        else:
-            # Pattern doesn't exist for these adjacent cells, return
-            return return_list
         
         # Any potential patterns that are fully connected up/down depending on
         # the pattern get added to the return list
@@ -515,6 +508,30 @@ class HexBoard():
     def find_pattern7(self, pos, return_list):
         # Finds "Local Pattern 5" in the Hayward document (see comments at start
         # for link). Use number 7 since 5 is already 432 pattern
+        potential_patterns = []
+        x = pos[0]
+        y = pos[1]
+        
+        if x > 2 and x < self.board_dimension-2 and y < self.board_dimension-3 and \
+           self.board_dict[(x-1,y+2)].get_state() == WHITE:
+            # Need these conditions to form a down 7 pattern
+            potential_patterns.append([(x-2,y+2), (x-3,y+3), (x-2,y+3), (x+1,y+1), (x+1,y),\
+                                       (x,y+1), (x+2,y+1), (x,y+2), (x+1,y+2), (x+2,y+2),\
+                                       (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
+            
+        if x > 1 and x < self.board_dimension-3 and y > 2 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
+            # Need these conditions to form an up 7 pattern
+            potential_patterns.append([(x+2,y-2), (x+3,y-3), (x+2,y-3), (x-1,y-1), (x-1,y),\
+                                       (x,y-1), (x-2,y-1), (x,y-2), (x-1,y-2), (x-2,y-2),\
+                                       (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+            
+        # Now need to check each potential pattern is empty and connects as expected
+        for pattern in potential_patterns:
+            cells_to_check = pattern[1:3] + pattern[10::]
+            if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
+                pattern = self.change_pattern(pattern) + [7]
+                if pattern not in return_list:
+                    return_list.append(pattern)
         
         return return_list
     
@@ -530,7 +547,7 @@ class HexBoard():
             potential_patterns.append([(x-2,y+1), (x-1,y), (x-1,y+1), (x-3,y+2), (x-2,y+2),\
                                        (x+1,y+1), (x+1,y), (x,y+1), (x,y+2), (x+1,y+2)])
             
-        elif x > 0 and x < self.board_dimension-3 and y > 1 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
+        if x > 0 and x < self.board_dimension-3 and y > 1 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
             # Need these conditions to form an up 9 pattern
             potential_patterns.append([(x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2),\
                                        (x+2,y-1), (x+1,y), (x+1,y-1), (x+2,y-2), (x+3,y-2)])

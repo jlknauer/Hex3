@@ -1,0 +1,25 @@
+PATTERN 7
+
+  Up connected w edges
+    board_nxn.place_stone(3,1,2)
+    board_nxn.place_stone(3,2,1)
+    board_nxn.place_stone(2,3,1)
+  Down connected w edges
+    board_nxn.place_stone(4,6,2)
+    board_nxn.place_stone(5,4,1)
+    board_nxn.place_stone(4,5,1)
+  Down connected no edges
+    board_nxn.place_stone(2,4,2)
+    board_nxn.place_stone(3,2,1)
+    board_nxn.place_stone(2,3,1)
+    board_nxn.place_stone(0,6,1)
+    board_nxn.place_stone(2,6,1)
+    board_nxn.place_stone(4,6,1)
+
+PATTERN 9
+
+  Down connected no edges
+    board_nxn.place_stone(2,4,2)
+    board_nxn.place_stone(3,2,1)
+    board_nxn.place_stone(0,5,1)
+    board_nxn.place_stone(3,5,1)
