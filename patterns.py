@@ -49,6 +49,7 @@
 #           else play a1 OR c3
 #
 # Jing Yang patterns: https://www.researchgate.net/publication/228970285_A_New_Solution_for_7x7_Hex_Game
+# Hayward paper w/ patterns: https://webdocs.cs.ualberta.ca/~hayward/papers/yang7.pdf
 #
 # CLEANUP:
 # 432 pattern (finding and replying)
@@ -87,7 +88,7 @@ class HexBoard():
         
     def expand(self,pos1):
         # Neighbour search, used for DFS to find a winning path
-        color = self.board_dict[pos1].state
+        color = self.board_dict[pos1].get_state()
         append_list = []
         return_list = []
         # p_list contains the potential neighbouring cells with x,y relative to
@@ -105,7 +106,7 @@ class HexBoard():
         # colour cell as the original, then return those
         for pos in append_list:
             cell = self.board_dict[pos]
-            if cell.state == color:
+            if cell.get_state() == color:
                 return_list.append(pos)
         return return_list
 
@@ -118,7 +119,7 @@ class HexBoard():
         # Check all cells in the first row, any that are black get added to the
         # current list
         for i in range(self.board_dimension):
-            if self.board_dict[(i,0)].state == 1:
+            if self.board_dict[(i,0)].get_state() == 1:
                 current_list.append((i,0))
                 
         # Iterate until the current list has no more cells
@@ -149,7 +150,7 @@ class HexBoard():
         for i in range(self.board_dimension):
             # For all the cells in the first column, if the cell contains a
             # white stone, add it to the current list
-            if self.board_dict[(0,i)].state == 2:
+            if self.board_dict[(0,i)].get_state() == 2:
                 current_list.append((0,i))
                 
         # Iterate until the current list has no more cells left
@@ -196,7 +197,7 @@ class HexBoard():
         # Places a stone with the given colour at a specific cell
         cell = self.board_dict[(x,y)]
         # Check the cell is valid to play in, if not return
-        if cell.state == UNOCCUPIED:
+        if cell.get_state() == UNOCCUPIED:
             # Place a stone at the given x,y coordinate
             substrategies = self.find_substrategies()
             cell.set_state(state)
@@ -276,7 +277,7 @@ class HexBoard():
         # coloured to work
         return_list = []
         for pos in self.board_dict:
-            if self.board_dict[pos].state == BLACK:
+            if self.board_dict[pos].get_state() == BLACK:
                 # For all black coloured cells check if they make a known pattern
                 return_list = self.find_bridge(1, pos, return_list)
                 return_list = self.find_432(pos, return_list)
@@ -291,23 +292,23 @@ class HexBoard():
         for cell_bridge in cell_bridges:
             # Get the other cell that gets bridged to
             cell_bridge = self.board_dict[cell_bridge]
-            if cell_bridge.state == color:
+            if cell_bridge.get_state() == color:
                 # If the bridge cell is also the color we are looking for
                 # and the cells between them are empty, add the cells
                 # to the return list
                 pairs = list(set(cell.get_neighbours()) & set(cell_bridge.get_neighbours()))
-                if self.board_dict[pairs[0]].state == UNOCCUPIED and self.board_dict[pairs[1]].state == UNOCCUPIED:
+                if self.board_dict[pairs[0]].get_state() == UNOCCUPIED and self.board_dict[pairs[1]].get_state() == UNOCCUPIED:
                     return_list.append([coord_2_pos(pairs[0][0],pairs[0][1]),coord_2_pos(pairs[1][0],pairs[1][1])] + [2])
         
         # Find bridges that are edge bridges
         cell_nbrs = cell.get_neighbours()
         for nbr in cell_nbrs:
-            if self.board_dict[nbr].state == UNOCCUPIED:
+            if self.board_dict[nbr].get_state() == UNOCCUPIED:
                 # Get the shared cells of the neighbour and cell
                 bridge_cell = set(cell.get_neighbours()) & set(self.board_dict[nbr].get_neighbours())
                 # Iterate through the shared cells
                 for overlap_cell in bridge_cell:
-                    if self.board_dict[overlap_cell].state == UNOCCUPIED:
+                    if self.board_dict[overlap_cell].get_state() == UNOCCUPIED:
                         # If both cells are unoccupied and black edges, then a bridge exists between them
                         if self.board_dict[overlap_cell].is_black_edge() and self.board_dict[nbr].is_black_edge():
                             return_list.append([coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])] + [2])
@@ -329,7 +330,7 @@ class HexBoard():
                 temp_list.append(coord_2_pos(cell_432.x,cell_432.y))
                 
                 # The cells must be unoccupied to have the 432 pattern
-                if cell_432.state != UNOCCUPIED:
+                if cell_432.get_state() != UNOCCUPIED:
                     temp_list = []
                     break
                 
@@ -361,7 +362,7 @@ class HexBoard():
                         # Check that the required neighbours can connect above
                         # or below, one of the neighbours must be black
                         for nbr in coords:
-                            if self.board_dict[nbr].state == BLACK:
+                            if self.board_dict[nbr].get_state() == BLACK:
                                 connected_list.append(cell_coords)
                                 break
                         
@@ -376,20 +377,31 @@ class HexBoard():
         # Finds patterns that require two adjacent black coloured cells
         return_list = []
         for pos in self.board_dict:
-            if self.board_dict[pos].state != BLACK:
+            if self.board_dict[pos].get_state() != BLACK:
                 continue
             
+            x = pos[0]
+            y = pos[1]
             # An adjacent cell must be black to have this pattern work
-            adjacents = [(pos[0]-1,pos[1]), (pos[0]+1,pos[1])]
+            adjacents = [(x-1,y), (x+1,y)]
             for coord in adjacents:
                 # Check the coordinate exists in the board
                 if coord[0] >= 0 and coord[0] < self.board_dimension:
-                    if self.board_dict[coord].state == BLACK:
+                    if self.board_dict[coord].get_state() == BLACK:
                         # Two adjacent black cells exist
                         # Patterns with "jyp#" stands for Jing Yang Pattern # 
                         return_list = self.find_double_triangle(pos, coord, return_list)
                         return_list = self.find_jyp3(pos, return_list)
                         return_list = self.find_jyp4(pos, return_list)
+                        
+            # Next set of adjacents for patterns
+            adjacents = [(x+1,y-1), (x-1,y+1)]
+            for coord in adjacents:
+                # Check coordinate exists on the board
+                if coord[0] >= 0 and coord[0] < self.board_dimension and coord[1] >= 0 and coord[1] < self.board_dimension:
+                    if self.board_dict[coord].get_state() == BLACK:
+                        # Adjacent black cells exist here, check corresponding patterns
+                        return_list = self.find_pattern7(pos, return_list)
                         
         return return_list
     
@@ -399,13 +411,13 @@ class HexBoard():
         # We'll choose to position based on the first given black cell
         x = pos[0]
         y = pos[1]
-        if x >= 2 and y < self.board_dimension-2 and self.board_dict[(x, y+1)].state == WHITE:
+        if x >= 2 and y < self.board_dimension-2 and self.board_dict[(x, y+1)].get_state() == WHITE:
             # Pattern having a white stone here means could have a down pattern
             pattern = [(x-1,y+1), (x-2,y+2), (x-1,y+2), (x+1,y+1), (x,y+2), (x+1,y+2)]
             if self.check_all_empty(pattern):
                 potential_patterns.append(pattern + [3])
         
-        elif x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1, y-1)].state == WHITE:
+        elif x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1, y-1)].get_state() == WHITE:
             # Pattern having a white stone here means could have an up pattern
             pattern = [(x,y-1), (x,y-2), (x+1,y-2), (x+2,y-1), (x+2,y-2), (x+3,y-2)]
             if self.check_all_empty(pattern):
@@ -431,20 +443,20 @@ class HexBoard():
         x = pos[0]
         y = pos[1]
         if x > 0 and x < self.board_dimension-2 and y < self.board_dimension-2 and \
-           self.board_dict[(x,y+2)].state == WHITE:
+           self.board_dict[(x,y+2)].get_state() == WHITE:
             # Need these conditions for the down-right version of this pattern
             potential_patterns.append([(x-1,y+2), (x-1,y+1), (x,y+1), (x+2,y+1), (x+2,y), (x+1,y+1), (x+1,y+2), (x+2,y+2)])
         
         elif x > 2 and x < self.board_dimension-1 and y < self.board_dimension-2 and \
-             self.board_dict[(x-1,y+2)].state == WHITE:
+             self.board_dict[(x-1,y+2)].get_state() == WHITE:
             # Need these conditions for the down-left version of this pattern
             potential_patterns.append([(x,y+2), (x+1,y+1), (x,y+1), (x-2,y+1), (x-1,y), (x-1,y+1), (x-3,y+2), (x-2,y+2)])
                 
-        elif x > 0 and x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1,y-2)].state == WHITE:
+        elif x > 0 and x < self.board_dimension-2 and y > 1 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
             # Need these conditions for the up-left version of this pattern
             potential_patterns.append([(x+2,y-2), (x+2,y-1), (x+1,y-1), (x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2)])
                 
-        elif x < self.board_dimension-4 and y > 1 and self.board_dict[(x+2,y-2)].state == WHITE:
+        elif x < self.board_dimension-4 and y > 1 and self.board_dict[(x+2,y-2)].get_state() == WHITE:
             # Need these conditions for the up-right version of this pattern
             potential_patterns.append([(x+1,y-2), (x,y-1), (x+1,y-1), (x+3,y-1), (x+2,y), (x+2,y-1), (x+3,y-2), (x+4,y-2)])
             
@@ -500,6 +512,12 @@ class HexBoard():
         
         return return_list
     
+    def find_pattern7(self, pos, return_list):
+        # Finds "Local Pattern 5" in the Hayward document (see comments at start
+        # for link). Use number 7 since 5 is already 432 pattern
+        
+        return return_list
+    
     def find_jyp9(self, pos, return_list):
         # Finds the 9th Jing Yang pattern
         potential_patterns = []
@@ -507,12 +525,12 @@ class HexBoard():
         x = pos[0]
         y = pos[1]
         if x > 2 and x < self.board_dimension-1 and y < self.board_dimension-2 and \
-           self.board_dict[(x-1,y+2)].state == WHITE:
+           self.board_dict[(x-1,y+2)].get_state() == WHITE:
             # Need these conditions to form a down 9 pattern
             potential_patterns.append([(x-2,y+1), (x-1,y), (x-1,y+1), (x-3,y+2), (x-2,y+2),\
                                        (x+1,y+1), (x+1,y), (x,y+1), (x,y+2), (x+1,y+2)])
             
-        elif x > 0 and x < self.board_dimension-3 and y > 1 and self.board_dict[(x+1,y-2)].state == WHITE:
+        elif x > 0 and x < self.board_dimension-3 and y > 1 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
             # Need these conditions to form an up 9 pattern
             potential_patterns.append([(x-1,y-1), (x-1,y), (x,y-1), (x,y-2), (x-1,y-2),\
                                        (x+2,y-1), (x+1,y), (x+1,y-1), (x+2,y-2), (x+3,y-2)])
@@ -542,7 +560,7 @@ class HexBoard():
                 # Check the neighbour is connected above or below
                 connected = False
                 for nbr in nbrs:
-                    if self.board_dict[nbr].state == BLACK:
+                    if self.board_dict[nbr].get_state() == BLACK:
                         connected = True
                         break
                 
@@ -586,7 +604,7 @@ class HexBoard():
         # Takes a list of cells and checks that each cell is unoccupied
         # cells_to_check should be in coordinate form, not position
         for cell in cells_to_check:
-            if self.board_dict[cell].state != UNOCCUPIED:
+            if self.board_dict[cell].get_state() != UNOCCUPIED:
                 # Cell is taken, all cells are not empty
                 return False
             
@@ -728,6 +746,9 @@ class HexCell():
     
     def get_432(self):
         return self.four32
+    
+    def get_state(self):
+        return self.state
     
     def is_black_edge(self):
         return self.BLACK_EDGE
