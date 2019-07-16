@@ -193,7 +193,7 @@ class HexBoard():
             board += '\n'
         return board
     
-    def place_stone(self, x, y, state, override=False):
+    def place_stone(self, x, y, state):
         # Places a stone with the given colour at a specific cell
         cell = self.board_dict[(x,y)]
         # Check the cell is valid to play in, if not return
@@ -213,7 +213,7 @@ class HexBoard():
             
         if (x,y) in self.unoccupied:
             self.unoccupied.remove((x,y))    
-        if state == WHITE and not override:
+        if state == WHITE:
             x,y = self.search_strategies(x,y,substrategies)
             try:
                 self.place_stone(x,y,BLACK)
@@ -558,18 +558,31 @@ class HexBoard():
         x = pos[0]
         y = pos[1]
         
-        if x > 1 and x < self.board_dimension-2 and y < self.board_dimension-3 and \
-           self.board_dict[(x-2,y+2)].get_state() == WHITE:
-            # Can have a down-right 8 pattern
-            potential_patterns.append([(x+1,y), (x,y+1), (x+1,y+1), (x+2,y+1), (x-1,y+2),\
-                                       (x,y+2), (x+1,y+2), (x+2,y+2), (x-2,y+3),\
-                                       (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
-        
-        if x > 1 and x < self.board_dimension-2 and y > 2 and self.board_dict[(x+2,y-2)].get_state() == WHITE:
-            # Can have an up-left 8 pattern
-            potential_patterns.append([(x-1,y), (x,y-1), (x-1,y-1), (x-2,y-1), (x+1,y-2),\
-                                       (x,y-2), (x-1,y-2), (x-2,y-2), (x+2,y-3),\
-                                       (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+        if case == 0:
+            if x > 1 and x < self.board_dimension-2 and y < self.board_dimension-3 and \
+               self.board_dict[(x-2,y+2)].get_state() == WHITE:
+                # Can have a down-right 8 pattern
+                potential_patterns.append([(x+1,y), (x,y+1), (x+1,y+1), (x+2,y+1), (x-1,y+2),\
+                                           (x,y+2), (x+1,y+2), (x+2,y+2), (x-2,y+3),\
+                                           (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
+            
+            if x > 1 and x < self.board_dimension-2 and y > 2 and self.board_dict[(x+2,y-2)].get_state() == WHITE:
+                # Can have an up-left 8 pattern
+                potential_patterns.append([(x-1,y), (x,y-1), (x-1,y-1), (x-2,y-1), (x+1,y-2),\
+                                           (x,y-2), (x-1,y-2), (x-2,y-2), (x+2,y-3),\
+                                           (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+        else:
+            if x > 4 and y < self.board_dimension-3 and self.board_dict[(x,y+2)].get_state() == WHITE:
+                # Need these conditions for a down-left 8 pattern
+                potential_patterns.append([(x-1,y), (x-1,y+1), (x-2,y+1), (x-3,y+1), (x-1,y+2),\
+                                           (x-2,y+2), (x-3,y+2), (x-4,y+2), (x-1,y+3),\
+                                           (x-2,y+3), (x-3,y+3), (x-4,y+3), (x-5,y+3)])
+                
+            if x < self.board_dimension-5 and y > 2 and self.board_dict[(x,y-2)].get_state() == WHITE:
+                # Need these conditions for an up-right 8 pattern
+                potential_patterns.append([(x+1,y), (x+1,y-1), (x+2,y-1), (x+3,y-1), (x+1,y-2),\
+                                           (x+2,y-2), (x+3,y-2), (x+4,y-2), (x+1,y-3),\
+                                           (x+2,y-3), (x+3,y-3), (x+4,y-3), (x+5,y-3)])
             
         # Check each pattern to see if it is empty and connected
         for pattern in potential_patterns:
