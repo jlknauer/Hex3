@@ -193,7 +193,7 @@ class HexBoard():
             board += '\n'
         return board
     
-    def place_stone(self, x, y, state):
+    def place_stone(self, x, y, state, override=False):
         # Places a stone with the given colour at a specific cell
         cell = self.board_dict[(x,y)]
         # Check the cell is valid to play in, if not return
@@ -213,7 +213,7 @@ class HexBoard():
             
         if (x,y) in self.unoccupied:
             self.unoccupied.remove((x,y))    
-        if state == WHITE:
+        if state == WHITE and not override:
             x,y = self.search_strategies(x,y,substrategies)
             try:
                 self.place_stone(x,y,BLACK)
@@ -396,14 +396,14 @@ class HexBoard():
                         return_list = self.find_jyp4(pos, return_list)
                         
             # Next set of adjacents for patterns
-            adjacents = [(x+1,y-1), (x-1,y+1)]
+            adjacents = [(x+1,y-1), (x-1,y+1), (x,y-1), (x,y+1)]
             for coord in adjacents:
                 # Check coordinate exists on the board
                 if coord[0] >= 0 and coord[0] < self.board_dimension and coord[1] >= 0 and coord[1] < self.board_dimension:
                     if self.board_dict[coord].get_state() == BLACK:
                         # Adjacent black cells exist here, check corresponding patterns
-                        return_list = self.find_pattern7(pos, return_list)
-                        return_list = self.find_pattern8(pos, return_list)
+                        return_list = self.find_pattern7(pos, return_list, adjacents.index(coord)//2)
+                        return_list = self.find_pattern8(pos, return_list, adjacents.index(coord)//2)
                         
         return return_list
     
@@ -506,26 +506,40 @@ class HexBoard():
         
         return return_list
     
-    def find_pattern7(self, pos, return_list):
+    def find_pattern7(self, pos, return_list, case):
         # Finds "Local Pattern 5" in the Hayward document (see comments at start
         # for link). Use number 7 since 5 is already 432 pattern
-        # CURRENTLY MISSING 2 CASES, TO BE FIXED
+        # Case determines the way the adjacent cells are
         potential_patterns = []
         x = pos[0]
         y = pos[1]
         
-        if x > 2 and x < self.board_dimension-2 and y < self.board_dimension-3 and \
-           self.board_dict[(x-1,y+2)].get_state() == WHITE:
-            # Need these conditions to form a down 7 pattern
-            potential_patterns.append([(x-2,y+2), (x-3,y+3), (x-2,y+3), (x+1,y+1), (x+1,y),\
-                                       (x,y+1), (x+2,y+1), (x,y+2), (x+1,y+2), (x+2,y+2),\
-                                       (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
-            
-        if x > 1 and x < self.board_dimension-3 and y > 2 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
-            # Need these conditions to form an up 7 pattern
-            potential_patterns.append([(x+2,y-2), (x+3,y-3), (x+2,y-3), (x-1,y-1), (x-1,y),\
-                                       (x,y-1), (x-2,y-1), (x,y-2), (x-1,y-2), (x-2,y-2),\
-                                       (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+        if case == 0:
+            if x > 2 and x < self.board_dimension-2 and y < self.board_dimension-3 and \
+               self.board_dict[(x-1,y+2)].get_state() == WHITE:
+                # Need these conditions to form a down-right 7 pattern
+                potential_patterns.append([(x-2,y+2), (x-3,y+3), (x-2,y+3), (x+1,y+1), (x+1,y),\
+                                           (x,y+1), (x+2,y+1), (x,y+2), (x+1,y+2), (x+2,y+2),\
+                                           (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
+                
+            if x > 1 and x < self.board_dimension-3 and y > 2 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
+                # Need these conditions to form an up-left 7 pattern
+                potential_patterns.append([(x+2,y-2), (x+3,y-3), (x+2,y-3), (x-1,y-1), (x-1,y),\
+                                           (x,y-1), (x-2,y-1), (x,y-2), (x-1,y-2), (x-2,y-2),\
+                                           (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+                
+        else:
+            if x < self.board_dimension-5 and y > 2 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
+                # Need these conditions to form an up-right 7 pattern
+                potential_patterns.append([(x,y-2), (x,y-3), (x+1,y-3), (x+2,y-1), (x+1,y),\
+                                           (x+1,y-1), (x+3,y-1), (x+2,y-2), (x+3,y-2), (x+4,y-2),\
+                                           (x+2,y-3), (x+3,y-3), (x+4,y-3), (x+5,y-3)])
+                
+            if x > 4 and y < self.board_dimension-3 and self.board_dict[(x-1,y+2)].get_state() == WHITE:
+                # Need these conditions to form a down-left 7 pattern
+                potential_patterns.append([(x,y+2), (x,y+3), (x-1,y+3), (x-2,y+1), (x-1,y),\
+                                           (x-1,y+1), (x-3,y+1), (x-2,y+2), (x-3,y+2), (x-4,y+2),\
+                                           (x-2,y+3), (x-3,y+3), (x-4,y+3), (x-5,y+3)])
             
         # Now need to check each potential pattern is empty and connects as expected
         for pattern in potential_patterns:
@@ -537,7 +551,7 @@ class HexBoard():
         
         return return_list
     
-    def find_pattern8(self, pos, return_list):
+    def find_pattern8(self, pos, return_list, case):
         # Finds "Local Pattern 4" in the Hayward document (see comments at start
         # for link). Use number 8 since 4 is already a pattern
         potential_patterns = []
