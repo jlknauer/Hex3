@@ -403,6 +403,7 @@ class HexBoard():
                     if self.board_dict[coord].get_state() == BLACK:
                         # Adjacent black cells exist here, check corresponding patterns
                         return_list = self.find_pattern7(pos, return_list)
+                        return_list = self.find_pattern8(pos, return_list)
                         
         return return_list
     
@@ -508,6 +509,7 @@ class HexBoard():
     def find_pattern7(self, pos, return_list):
         # Finds "Local Pattern 5" in the Hayward document (see comments at start
         # for link). Use number 7 since 5 is already 432 pattern
+        # CURRENTLY MISSING 2 CASES, TO BE FIXED
         potential_patterns = []
         x = pos[0]
         y = pos[1]
@@ -530,6 +532,36 @@ class HexBoard():
             cells_to_check = pattern[1:3] + pattern[10::]
             if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
                 pattern = self.change_pattern(pattern) + [7]
+                if pattern not in return_list:
+                    return_list.append(pattern)
+        
+        return return_list
+    
+    def find_pattern8(self, pos, return_list):
+        # Finds "Local Pattern 4" in the Hayward document (see comments at start
+        # for link). Use number 8 since 4 is already a pattern
+        potential_patterns = []
+        x = pos[0]
+        y = pos[1]
+        
+        if x > 1 and x < self.board_dimension-2 and y < self.board_dimension-3 and \
+           self.board_dict[(x-2,y+2)].get_state() == WHITE:
+            # Can have a down-right 8 pattern
+            potential_patterns.append([(x+1,y), (x,y+1), (x+1,y+1), (x+2,y+1), (x-1,y+2),\
+                                       (x,y+2), (x+1,y+2), (x+2,y+2), (x-2,y+3),\
+                                       (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
+        
+        if x > 1 and x < self.board_dimension-2 and y > 2 and self.board_dict[(x+2,y-2)].get_state() == WHITE:
+            # Can have an up-left 8 pattern
+            potential_patterns.append([(x-1,y), (x,y-1), (x-1,y-1), (x-2,y-1), (x+1,y-2),\
+                                       (x,y-2), (x-1,y-2), (x-2,y-2), (x+2,y-3),\
+                                       (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+            
+        # Check each pattern to see if it is empty and connected
+        for pattern in potential_patterns:
+            cells_to_check = pattern[8::]
+            if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
+                pattern = self.change_pattern(pattern) + [8]
                 if pattern not in return_list:
                     return_list.append(pattern)
         

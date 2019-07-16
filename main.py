@@ -4,11 +4,11 @@ def main():
     # create an empty nxn Hex board
     board_nxn = patterns.HexBoard(n)
     pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
-    board_nxn.place_stone(1, 6, 1) ######## MAIN POSITION ########
+    #board_nxn.place_stone(1, 6, 1) ######## MAIN POSITION ########
     
-    #board_nxn.place_stone(4,6,2)
-    #board_nxn.place_stone(5,4,1)
-    #board_nxn.place_stone(4,5,1)
+    board_nxn.place_stone(3,6,2)
+    board_nxn.place_stone(5,4,1)
+    board_nxn.place_stone(4,5,1)
         
     print(board_nxn)
     print("Single Patterns : ",end='')
