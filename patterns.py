@@ -73,6 +73,7 @@ WHITE = 2
 class HexBoard():
     # intialize board state to all cells unoccupied
     def __init__(self, board_dimension):
+        self.substrategies = []
         self.board_dimension = board_dimension
         self.unoccupied = []
         self.move_list = []
@@ -198,8 +199,12 @@ class HexBoard():
         cell = self.board_dict[(x,y)]
         # Check the cell is valid to play in, if not return
         if cell.get_state() == UNOCCUPIED:
+            # Remove any patterns that no longer exist
+            self.substrategies = [pattern for pattern in self.substrategies if self.check_all_empty(self.change_pattern(pattern[0:len(pattern)-1]))]
+            if len(self.substrategies) == 0:
+                self.find_substrategies()
+                
             # Place a stone at the given x,y coordinate
-            substrategies = self.find_substrategies()
             cell.set_state(state)
             self.board_array[y][x] = state
         else:
@@ -214,7 +219,7 @@ class HexBoard():
         if (x,y) in self.unoccupied:
             self.unoccupied.remove((x,y))    
         if state == WHITE:
-            x,y = self.search_strategies(x,y,substrategies)
+            x,y = self.search_strategies(x,y)
             try:
                 self.place_stone(x,y,BLACK)
             except:
@@ -227,13 +232,13 @@ class HexBoard():
         # Finds the sub-patterns within the board
         singles = self.find_single_patterns()
         adjacents = self.find_adjacent_patterns()
-        return singles + adjacents
+        self.substrategies = singles + adjacents
     
-    def search_strategies(self, x,y, substrategies):
+    def search_strategies(self, x,y):
         white_move = coord_2_pos(x,y)
         # Find the strategy (if it exists) that white played in, then make a
         # replying move in that substrategy
-        for strat in substrategies:
+        for strat in self.substrategies:
             if white_move in strat:
                 return self.get_move(strat, white_move)
                 
@@ -246,8 +251,8 @@ class HexBoard():
         
         # White move did not threaten any strategies, so choose a random strategy
         # to play in
-        if substrategies != []:
-            strat = random.choice(substrategies)
+        if len(self.substrategies) != 0:
+            strat = random.choice(self.substrategies)
             return self.get_move(strat, white_move)
         else:
             # No strategy, play randomly
@@ -260,11 +265,11 @@ class HexBoard():
     def get_move(self, strat, white_move):
         # Find the pattern white is threatening and reply
         if strat[len(strat)-1] == 2: # Bridge is pattern 2
-            move = self.reply_bridge(strat[0:len(strat)-1], white_move)
+            move = self.reply_bridge(strat, white_move)
         elif strat[len(strat)-1] == 5: # 432 strategy
             # Only other option is the 432 strategy
             black_pos = strat[len(strat)-2]
-            move = self.reply432(strat[0:len(strat)-1], black_pos, white_move)
+            move = self.reply432(strat, black_pos, white_move)
         elif strat[len(strat)-1] == 9:
             move = self.reply_two_part(strat[0:len(strat)-1], white_move, 5)
         else:
@@ -313,7 +318,6 @@ class HexBoard():
                         # If both cells are unoccupied and black edges, then a bridge exists between them
                         if self.board_dict[overlap_cell].is_black_edge() and self.board_dict[nbr].is_black_edge():
                             return_list.append([coord_2_pos(nbr[0],nbr[1]),coord_2_pos(overlap_cell[0],overlap_cell[1])] + [2])
-                            #cell_nbrs.remove(overlap_cell)
                                     
         return return_list
     
@@ -689,6 +693,7 @@ class HexBoard():
     def reply_bridge(self, pattern, white_move):
         # Finds the replying move when a bridge has been threatened
         if white_move in pattern:
+            self.substrategies.remove(pattern)
             # Remove the white move so black can take the other cell
             pattern.remove(white_move)
         # Return the replying move
@@ -733,8 +738,11 @@ class HexBoard():
         # Find the last two cells to complete the triangle
         triangle = [triangle_pos] + list(set(pattern) & set(self.board_dict[triangle_pos[0], triangle_pos[1]].get_neighbours()))
         
+        self.substrategies.remove(pattern)
         if white_move in triangle or white_move not in pattern:
             # Need to perform replying move in other 5 cells
+            self.substrategies.append([])
+            self.substrategies.append([])
             return five_pos
             
         else:

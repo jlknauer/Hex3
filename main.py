@@ -11,10 +11,12 @@ def main():
     #board_nxn.place_stone(5,5,1)
         
     print(board_nxn)
-    print("Single Patterns : ",end='')
-    print(board_nxn.find_single_patterns())
-    print("Black Adjacents : ",end='')
-    print(board_nxn.find_adjacent_patterns())
+    #print("Single Patterns : ",end='')
+    #print(board_nxn.find_single_patterns())
+    board_nxn.find_substrategies()
+    print("Black Substrategies : ",end='')
+    #print(board_nxn.find_adjacent_patterns())
+    print(board_nxn.substrategies)
     
     while board_nxn.detect_win() == 0:
         print("\n")
@@ -31,10 +33,11 @@ def main():
             if board_nxn.detect_win() == 0:
                 print("Nobody wins")
                                     
-                print("Single Patterns : ",end='')
-                print(board_nxn.find_single_patterns())
-                print("Black Adjacents : ",end='')
-                print(board_nxn.find_adjacent_patterns())                
+                #print("Single Patterns : ",end='')
+                #print(board_nxn.find_single_patterns())
+                print("Black Substrategies : ",end='')
+                #print(board_nxn.find_adjacent_patterns())
+                print(board_nxn.substrategies)
 
             elif board_nxn.detect_win() == 1:
                 print("Game ends, black wins and no need to check patterns")
