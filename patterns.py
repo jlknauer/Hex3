@@ -197,13 +197,9 @@ class HexBoard():
     def place_stone(self, x, y, state):
         # Places a stone with the given colour at a specific cell
         cell = self.board_dict[(x,y)]
+        
         # Check the cell is valid to play in, if not return
-        if cell.get_state() == UNOCCUPIED:
-            # Remove any patterns that no longer exist
-            self.substrategies = [pattern for pattern in self.substrategies if self.check_all_empty(self.change_pattern(pattern[0:len(pattern)-1]))]
-            if len(self.substrategies) == 0:
-                self.find_substrategies()
-                
+        if cell.get_state() == UNOCCUPIED:                
             # Place a stone at the given x,y coordinate
             cell.set_state(state)
             self.board_array[y][x] = state
@@ -222,6 +218,10 @@ class HexBoard():
             x,y = self.search_strategies(x,y)
             try:
                 self.place_stone(x,y,BLACK)
+                # Remove any patterns that no longer exist
+                self.substrategies = [pattern for pattern in self.substrategies if self.check_all_empty(self.change_pattern(pattern[0:len(pattern)-1]))]
+                if len(self.substrategies) == 0:
+                    self.find_substrategies()                
             except:
                 coord = random.choice(self.unoccupied)
                 x = coord[0]
@@ -702,7 +702,8 @@ class HexBoard():
     def reply432(self, pattern, black_pos, white_move):
         # Finds a replying move in the 432 pattern
         # Convert all patterns/moves into coordinate form
-        pattern = self.change_pattern(pattern)
+        self.substrategies.remove(pattern)
+        pattern = self.change_pattern(pattern[0:len(pattern)-1])
         black_pos = pos_2_coord(black_pos)
         white_move = pos_2_coord(white_move)
         
@@ -738,11 +739,18 @@ class HexBoard():
         # Find the last two cells to complete the triangle
         triangle = [triangle_pos] + list(set(pattern) & set(self.board_dict[triangle_pos[0], triangle_pos[1]].get_neighbours()))
         
-        self.substrategies.remove(pattern)
         if white_move in triangle or white_move not in pattern:
             # Need to perform replying move in other 5 cells
-            self.substrategies.append([])
-            self.substrategies.append([])
+            pattern.remove(black_pos)
+            pattern.remove(five_pos)
+            for cell in triangle:
+                pattern.remove(cell)
+                
+            decomp1 = list(set(self.board_dict[black_pos].get_neighbours()) & set(self.board_dict[five_pos].get_neighbours()))
+            for cell in decomp1:
+                pattern.remove(cell)
+            self.substrategies.append(self.change_pattern(decomp1) + [2])
+            self.substrategies.append(self.change_pattern(pattern) + [2])
             return five_pos
             
         else:
@@ -760,7 +768,10 @@ class HexBoard():
                 if count == 1:
                     # Only one of this y coordinate exists, so we need the cell
                     # with that coordinate
-                    return triangle[y_coords.index(num)]
+                    cell = triangle[y_coords.index(num)]
+                    triangle.remove(cell)
+                    self.substrategies.append(self.change_pattern(triangle) + [2])
+                    return cell
         return
         
     def reply_two_part(self, pattern, white_move, split=3):
