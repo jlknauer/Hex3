@@ -1,5 +1,28 @@
-PATTERN 7
+JYP 3
+  Down connected w edges
+    board_nxn.place_stone(4,6,2)
+    board_nxn.place_stone(4,5,1)
+    board_nxn.place_stone(5,5,1)
+  Up connected w edges
+    board_nxn.place_stone(4,1,2)
+    board_nxn.place_stone(4,2,1)
+    board_nxn.place_stone(5,2,1)
 
+JYP 4
+  Down connected w edges
+    board_nxn.place_stone(5,7,2)
+    board_nxn.place_stone(5,5,1)
+    board_nxn.place_stone(6,5,1)
+
+JYP 6/Double Triangle
+  Down connected w edges
+    board_nxn.place_stone(7,5,1)
+    board_nxn.place_stone(6,5,1)
+  Up connected w edges
+    board_nxn.place_stone(6,2,1)
+    board_nxn.place_stone(5,2,1)
+
+PATTERN 7
   Up-left connected w edges
     board_nxn.place_stone(3,1,2)
     board_nxn.place_stone(3,2,1)
@@ -43,8 +66,12 @@ PATTERN 8
     board_nxn.place_stone(6,2,1)
     board_nxn.place_stone(5,3,1)
 
-PATTERN 9
-
+JYP 9
+  Down connected w edges
+    board_nxn.place_stone(5,7,2)
+    board_nxn.place_stone(6,5,1)
+  Up connected w edges
+    board_nxn.place_stone(4,0,2)
   Down connected no edges
     board_nxn.place_stone(2,4,2)
     board_nxn.place_stone(3,2,1)

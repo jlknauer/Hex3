@@ -219,7 +219,9 @@ class HexBoard():
             try:
                 self.place_stone(x,y,BLACK)
                 # Remove any patterns that no longer exist
+                print(self.substrategies)
                 self.substrategies = [pattern for pattern in self.substrategies if self.check_all_empty(self.change_pattern(pattern[0:len(pattern)-1]))]
+                print(self.substrategies)
                 if len(self.substrategies) == 0:
                     self.find_substrategies()                
             except:
@@ -264,19 +266,66 @@ class HexBoard():
     
     def get_move(self, strat, white_move):
         # Find the pattern white is threatening and reply
-        if strat[len(strat)-1] == 2: # Bridge is pattern 2
+        # If there's time this function should be optimized
+        pattern_id = strat[len(strat)-1]
+        if pattern_id == 2: # Bridge is pattern 2
             move = self.reply_bridge(strat, white_move)
-        elif strat[len(strat)-1] == 5: # 432 strategy
-            # Only other option is the 432 strategy
+            return move
+        elif pattern_id == 5: # 432 strategy
             black_pos = strat[len(strat)-2]
             move = self.reply432(strat, black_pos, white_move)
-        elif strat[len(strat)-1] == 9:
-            move = self.reply_two_part(strat[0:len(strat)-1], white_move, 5)
+            return move
+        elif pattern_id == 9:
+            # Split option with 5 as the split
+            move = self.reply_two_part(strat, white_move, 5)
         else:
             # Other options are all split options with a triangle,
             # only need to call the one function
-            move = self.reply_two_part(strat[0:len(strat)-1], white_move)
+            move = self.reply_two_part(strat, white_move)
+            
+        self.decompose_pattern(pattern_id, strat, move)
         return move
+    
+    def decompose_pattern(self, pattern_id, pattern, move):
+        # Decomposes a specified pattern based on the move index into subgames.
+        # Does not accomodate bridge or 432 as of right now. 
+        # move is the black stone that gets placed
+        if type(move) == tuple:
+            move = coord_2_pos(move[0], move[1])
+            
+        # Remove the substrategy as it no longer exists
+        self.substrategies.remove(pattern)
+        index = pattern.index(move) # Get the index of the move
+        if pattern_id == 3 or pattern_id == 6:
+            # Double triangle, one bridge gets formed
+            if index == 0:
+                self.substrategies.append(pattern[1:3] + [2])
+            else:
+                self.substrategies.append(pattern[4:6] + [2])
+                
+        elif pattern_id == 4: # 432 pattern should be implemented here as well
+            if index == 0:
+                self.substrategies.append(pattern[1:3] + [2])
+            else:
+                self.substrategies.append(pattern[4:6] + [2])
+                self.substrategies.append(pattern[6:8] + [2])
+                
+        elif pattern_id == 7:
+            if index == 0:
+                self.substrategies.append(pattern[1:3] + [2])
+            else:
+                self.substrategies.append(pattern[4:6] + [2])
+                # Way of adding this pattern WILL need to be changed upon redoing 432 pattern
+                self.substrategies.append(pattern[6:14] + [5])
+                
+        elif pattern_id == 9:
+            if index == 0:
+                self.substrategies.append(pattern[1:3] + [2])
+                self.substrategies.append(pattern[3:5] + [2])
+            else:
+                self.substrategies.append(pattern[6:8] + [2])
+                self.substrategies.append(pattern[8:10] + [2])
+        return
     
     def find_single_patterns(self):
         # Finds all patterns that only require a single cell being black
@@ -652,33 +701,6 @@ class HexBoard():
             return True
         else:
             return False
-    
-    def find_open4x4(self):
-        # Finds connected 4x4 positions with all cells being empty
-        # Currently do not use, issues come with how strategies has been implemented
-        # and how this pattern would be used
-        return_list = []
-        for x in range(self.board_dimension-3):
-            for y in range(self.board_dimension-3):
-                # Cells contains the potential cells for the 4x4 pattern
-                cells = self.find_4x4(x,y)
-                
-                # Check all the cells are empty
-                empty = self.check_all_empty(cells)
-                if empty:
-                    # Need to check that both sides are connected now
-                    pass
-            
-        return return_list
-    
-    def find_4x4(self, x, y):
-        # Finds a 4x4 grid using the x,y given, moving from left to right
-        return_list = []
-        for plus_x in range(4):
-            for plus_y in range(4):
-                return_list.append((x+plus_x, y+plus_y))
-                
-        return return_list
     
     def check_all_empty(self, cells_to_check):
         # Takes a list of cells and checks that each cell is unoccupied
