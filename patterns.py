@@ -271,10 +271,6 @@ class HexBoard():
         if pattern_id == 2: # Bridge is pattern 2
             move = self.reply_bridge(strat, white_move)
             return move
-        elif pattern_id == 5: # 432 strategy
-            black_pos = strat[len(strat)-2]
-            move = self.reply432(strat, black_pos, white_move)
-            return move
         elif pattern_id == 9:
             # Split option with 5 as the split
             move = self.reply_two_part(strat, white_move, 5)
@@ -303,7 +299,7 @@ class HexBoard():
             else:
                 self.substrategies.append(pattern[4:6] + [2])
                 
-        elif pattern_id == 4: # 432 pattern should be implemented here as well
+        elif pattern_id == 4 or pattern_id == 5: # 432 pattern should be implemented here as well
             if index == 0:
                 self.substrategies.append(pattern[1:3] + [2])
             else:
@@ -371,60 +367,17 @@ class HexBoard():
         return return_list
     
     def find_432(self, pos, return_list):
-        # Return all 432 patterns that are on the board
-        cell = self.board_dict[pos]
+        # Finds open 432 pattern positions and adds them to the return_list
+        potential_patterns = self.board_dict[pos].get_432()
         
-        # Get all possible 432 patterns at that cell, then verify they
-        # exist
-        patterns = cell.get_432()
-        for cell_432s in patterns:
-            temp_list = []
-            for cell_432 in cell_432s:
-                cell_432 = self.board_dict[cell_432]
-                temp_list.append(coord_2_pos(cell_432.x,cell_432.y))
-                
-                # The cells must be unoccupied to have the 432 pattern
-                if cell_432.get_state() != UNOCCUPIED:
-                    temp_list = []
-                    break
-                
-            if temp_list != []:
-                edges = True
-                
-                # Determine whether the 432 is in an up or down formation
-                y_change = -1
-                if pos_2_coord(temp_list[4])[1] > pos_2_coord(temp_list[3])[1]:
-                    y_change = 1
-                
-                connected_list = []
-                for cell_to_check in temp_list[4::]:
-                    if not self.board_dict[pos_2_coord(cell_to_check)].is_black_edge():
-                        # Not at an edge, must check the 432 can still exist
-                        edges = False
-                        
-                    if not edges:
-                        # Check that all cells are connected above or below
-                        # to a black edge
-                        cell_coords = pos_2_coord(cell_to_check)
-                        neighbours = self.board_dict[cell_coords].get_neighbours()
-                        
-                        # Find the coordinates that need to be checked for
-                        # connection to allow for the 432 pattern to exist
-                        coords = [coord for coord in neighbours if \
-                                  cell_coords[1] + y_change == coord[1]]
-                        
-                        # Check that the required neighbours can connect above
-                        # or below, one of the neighbours must be black
-                        for nbr in coords:
-                            if self.board_dict[nbr].get_state() == BLACK:
-                                connected_list.append(cell_coords)
-                                break
-                        
-                if edges or len(connected_list) == 4:
-                    # 432 exists, add it to the return list
-                    temp_list.append(coord_2_pos(pos[0],pos[1]))
-                    return_list.append(temp_list + [5])
-                            
+        for pattern in potential_patterns:
+            cells_to_check = pattern[1:3] + pattern[6::]
+            # Pattern must be fully empty and connected to exist
+            if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
+                pattern = self.change_pattern(pattern) + [5]
+                if pattern not in return_list:
+                    return_list.append(pattern)
+                    
         return return_list
     
     def find_adjacent_patterns(self):
@@ -720,81 +673,6 @@ class HexBoard():
             pattern.remove(white_move)
         # Return the replying move
         return pos_2_coord(pattern[0])
-    
-    def reply432(self, pattern, black_pos, white_move):
-        # Finds a replying move in the 432 pattern
-        # Convert all patterns/moves into coordinate form
-        self.substrategies.remove(pattern)
-        pattern = self.change_pattern(pattern[0:len(pattern)-1])
-        black_pos = pos_2_coord(black_pos)
-        white_move = pos_2_coord(white_move)
-        
-        # The max x distance between cells can tell us what type of 432 pattern
-        # we're dealing with
-        max_x_dist = 0
-        max_x_pos = None
-        for coord in pattern:
-            dist = coord[0] - black_pos[0] # Distance between x values
-            if abs(dist) > abs(max_x_dist):
-                max_x_dist = dist
-                max_x_pos = coord
-                
-        # Find the corner part of the triangle for the 432 pattern and the connecting
-        # cell for the other 5 cells
-        if abs(max_x_dist) >= 3:
-            triangle_pos = (max_x_pos[0] - max_x_dist, max_x_pos[1])
-            
-            # Find connection cell for 5 pattern
-            if (max_x_pos[0] + 1, max_x_pos[1] - 1) in pattern:
-                five_pos = (max_x_pos[0] + 1, max_x_pos[1] - 1)
-            else:
-                five_pos = (max_x_pos[0] - 1, max_x_pos[1] + 1)
-        else:
-            triangle_pos = max_x_pos
-            
-            # Find connecting cell for 5 pattern
-            if (max_x_pos[0] - 3, max_x_pos[1] + 1) in pattern:
-                five_pos = (max_x_pos[0] - 3, max_x_pos[1] + 1)
-            else:
-                five_pos = (max_x_pos[0] + 3, max_x_pos[1] - 1)
-            
-        # Find the last two cells to complete the triangle
-        triangle = [triangle_pos] + list(set(pattern) & set(self.board_dict[triangle_pos[0], triangle_pos[1]].get_neighbours()))
-        
-        if white_move in triangle or white_move not in pattern:
-            # Need to perform replying move in other 5 cells
-            pattern.remove(black_pos)
-            pattern.remove(five_pos)
-            for cell in triangle:
-                pattern.remove(cell)
-                
-            decomp1 = list(set(self.board_dict[black_pos].get_neighbours()) & set(self.board_dict[five_pos].get_neighbours()))
-            for cell in decomp1:
-                pattern.remove(cell)
-            self.substrategies.append(self.change_pattern(decomp1) + [2])
-            self.substrategies.append(self.change_pattern(pattern) + [2])
-            return five_pos
-            
-        else:
-            # Need to perform replying move in triangle
-            y_coords = ''
-            for coord in triangle:
-                y_coords += str(coord[1])
-            
-            # The replying move is the one with a different y coordinate
-            for num in y_coords:
-                count = 0
-                for item in y_coords:
-                    if item == num:
-                        count += 1
-                if count == 1:
-                    # Only one of this y coordinate exists, so we need the cell
-                    # with that coordinate
-                    cell = triangle[y_coords.index(num)]
-                    triangle.remove(cell)
-                    self.substrategies.append(self.change_pattern(triangle) + [2])
-                    return cell
-        return
         
     def reply_two_part(self, pattern, white_move, split=3):
         # This function takes a pattern that can be broken into two parts, where
@@ -872,10 +750,10 @@ class HexCell():
     
     def generate_432_patterns(self, x, y):
         # Generates top to bottom 432 patterns
-        four32 = [[(x+1,y), (x,y+1),(x-1,y+1),(x+1,y+1), (x-2,y+2),(x-1,y+2),(x,y+2),(x+1,y+2)],\
-                  [(x-1,y), (x,y+1),(x-1,y+1),(x-2,y+1), (x-3,y+2),(x-2,y+2),(x-1,y+2),(x,y+2)],\
-                  [(x+1,y), (x,y-1),(x+1,y-1),(x+2,y-1), (x,y-2),(x+1,y-2),(x+2,y-2),(x+3,y-2)],\
-                  [(x-1,y), (x-1,y-1),(x,y-1),(x+1,y-1), (x-1,y-2),(x,y-2),(x+1,y-2),(x+2,y-2)]]
+        four32 = [[(x-1,y+1),(x-2,y+2),(x-1,y+2), (x+1,y+1),(x+1,y),(x,y+1),(x,y+2),(x+1,y+2)],\
+                  [(x,y+1),(x,y+2),(x-1,y+2), (x-2,y+1),(x-1,y),(x-1,y+1),(x-3,y+2),(x-2,y+2)],\
+                  [(x,y-1),(x,y-2),(x+1,y-2), (x+2,y-1),(x+1,y),(x+1,y-1),(x+2,y-2),(x+3,y-2)],\
+                  [(x+1,y-1),(x+1,y-2),(x+2,y-2), (x-1,y-1),(x-1,y),(x,y-1),(x-1,y-2),(x,y-2)]]
         
         # Goes through the four32 array and removes any patterns that have invalid
         # coordinates contained in them
