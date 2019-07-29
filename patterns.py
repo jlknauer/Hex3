@@ -82,6 +82,7 @@ class HexBoard():
         self.priority_list = ['c5', 'd3']
         # Populates a dictionary with an x,y key corresponding to a cell object
         self.board_dict = {}
+        
         for x in range(self.board_dimension):
             for y in range(self.board_dimension):
                 self.board_dict[(x,y)] = HexCell(x,y,self.board_dimension)
@@ -92,6 +93,7 @@ class HexBoard():
         color = self.board_dict[pos1].get_state()
         append_list = []
         return_list = []
+        
         # p_list contains the potential neighbouring cells with x,y relative to
         # the current position
         p_list = [(1,0),(0,1),(1,-1),(-1,1),(-1,0),(0,-1)]
@@ -109,6 +111,7 @@ class HexBoard():
             cell = self.board_dict[pos]
             if cell.get_state() == color:
                 return_list.append(pos)
+                
         return return_list
 
     # search for black wins
@@ -148,6 +151,7 @@ class HexBoard():
         # Performs a DFS looking for a white win. Goes left to right on the board
         current_list = []
         drop_list = []
+        
         for i in range(self.board_dimension):
             # For all the cells in the first column, if the cell contains a
             # white stone, add it to the current list
@@ -213,7 +217,8 @@ class HexBoard():
                     #self.move_list.append(move)
             
         if (x,y) in self.unoccupied:
-            self.unoccupied.remove((x,y))    
+            self.unoccupied.remove((x,y))
+            
         if state == WHITE:
             x,y = self.search_strategies(x,y)
             try:
@@ -268,7 +273,8 @@ class HexBoard():
         pattern_id = strat[len(strat)-1]
         if pattern_id == 2: # Bridge is pattern 2
             move = self.reply_bridge(strat, white_move)
-            return move
+        elif pattern_id == 8:
+            move = self.reply_pattern8(strat, white_move)
         elif pattern_id == 9:
             # Split option with 5 as the split
             move = self.reply_two_part(strat, white_move, 5)
@@ -683,6 +689,17 @@ class HexBoard():
             return pos_2_coord(part2[0])
         else:
             return pos_2_coord(part1[0])
+        
+    def reply_pattern8(self, pattern, white_move):
+        # This function replies to a threat in pattern 8 with a winning move
+        index = pattern.index(white_move)
+        if index == 4 or index == 8:
+            move = pattern[2]
+        elif index == 9:
+            move = pattern[4]
+        else:
+            move = pattern[4]
+        return pos_2_coord(move)
     
     def change_pattern(self, pattern):
         if type(pattern[0]) == str:
