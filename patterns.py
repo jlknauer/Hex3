@@ -219,9 +219,7 @@ class HexBoard():
             try:
                 self.place_stone(x,y,BLACK)
                 # Remove any patterns that no longer exist
-                print(self.substrategies)
                 self.substrategies = [pattern for pattern in self.substrategies if self.check_all_empty(self.change_pattern(pattern[0:len(pattern)-1]))]
-                print(self.substrategies)
                 if len(self.substrategies) == 0:
                     self.find_substrategies()                
             except:
@@ -244,12 +242,12 @@ class HexBoard():
             if white_move in strat:
                 return self.get_move(strat, white_move)
                 
-        if self.priority_list != [] and white_move not in self.priority_list:
-            move = self.priority_list.pop()
-            coord = pos_2_coord(move)
-            x = coord[0]
-            y = coord[1]
-            return x,y
+        #if self.priority_list != [] and white_move not in self.priority_list:
+            #move = self.priority_list.pop()
+            #coord = pos_2_coord(move)
+            #x = coord[0]
+            #y = coord[1]
+            #return x,y
         
         # White move did not threaten any strategies, so choose a random strategy
         # to play in
@@ -374,7 +372,7 @@ class HexBoard():
             cells_to_check = pattern[1:3] + pattern[6::]
             # Pattern must be fully empty and connected to exist
             if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
-                pattern = self.change_pattern(pattern) + [5]
+                pattern = self.change_pattern(list(pattern)) + [5]
                 if pattern not in return_list:
                     return_list.append(pattern)
                     
@@ -525,31 +523,31 @@ class HexBoard():
                self.board_dict[(x-1,y+2)].get_state() == WHITE:
                 # Need these conditions to form a down-right 7 pattern
                 potential_patterns.append([(x-2,y+2), (x-3,y+3), (x-2,y+3), (x+1,y+1), (x+1,y),\
-                                           (x,y+1), (x+2,y+1), (x,y+2), (x+1,y+2), (x+2,y+2),\
-                                           (x-1,y+3), (x,y+3), (x+1,y+3), (x+2,y+3)])
+                                           (x,y+1), (x,y+2), (x-1,y+3), (x,y+3), (x+2,y+2),\
+                                           (x+2,y+1), (x+1,y+2), (x+1,y+3), (x+2,y+3)])
                 
             if x > 1 and x < self.board_dimension-3 and y > 2 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
                 # Need these conditions to form an up-left 7 pattern
                 potential_patterns.append([(x+2,y-2), (x+3,y-3), (x+2,y-3), (x-1,y-1), (x-1,y),\
-                                           (x,y-1), (x-2,y-1), (x,y-2), (x-1,y-2), (x-2,y-2),\
-                                           (x+1,y-3), (x,y-3), (x-1,y-3), (x-2,y-3)])
+                                           (x,y-1), (x,y-2), (x+1,y-3), (x,y-3), (x-2,y-2),\
+                                           (x-2,y-1), (x-1,y-2), (x-1,y-3), (x-2,y-3)])
                 
         else:
             if x < self.board_dimension-5 and y > 2 and self.board_dict[(x+1,y-2)].get_state() == WHITE:
                 # Need these conditions to form an up-right 7 pattern
                 potential_patterns.append([(x,y-2), (x,y-3), (x+1,y-3), (x+2,y-1), (x+1,y),\
-                                           (x+1,y-1), (x+3,y-1), (x+2,y-2), (x+3,y-2), (x+4,y-2),\
-                                           (x+2,y-3), (x+3,y-3), (x+4,y-3), (x+5,y-3)])
+                                           (x+1,y-1), (x+2,y-2), (x+2,y-3), (x+3,y-3), (x+4,y-2),\
+                                           (x+3,y-1), (x+3,y-2), (x+4,y-3), (x+5,y-3)])
                 
             if x > 4 and y < self.board_dimension-3 and self.board_dict[(x-1,y+2)].get_state() == WHITE:
                 # Need these conditions to form a down-left 7 pattern
                 potential_patterns.append([(x,y+2), (x,y+3), (x-1,y+3), (x-2,y+1), (x-1,y),\
-                                           (x-1,y+1), (x-3,y+1), (x-2,y+2), (x-3,y+2), (x-4,y+2),\
-                                           (x-2,y+3), (x-3,y+3), (x-4,y+3), (x-5,y+3)])
+                                           (x-1,y+1), (x-2,y+2), (x-2,y+3), (x-3,y+3), (x-4,y+2),\
+                                           (x-3,y+1), (x-3,y+2), (x-4,y+3), (x-5,y+3)])
             
         # Now need to check each potential pattern is empty and connects as expected
         for pattern in potential_patterns:
-            cells_to_check = pattern[1:3] + pattern[10::]
+            cells_to_check = pattern[1:3] + pattern[7:9] + pattern[12::]
             if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
                 pattern = self.change_pattern(pattern) + [7]
                 if pattern not in return_list:
