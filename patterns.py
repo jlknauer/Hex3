@@ -278,18 +278,24 @@ class HexBoard():
         elif pattern_id == 9:
             # Split option with 5 as the split
             move = self.reply_two_part(strat, white_move, 5)
+            self.decompose_pattern(pattern_id, strat, move)
+        elif pattern_id == 10:
+            move = self.reply_pattern10(strat, white_move)
+        elif pattern_id == 11:
+            move = self.reply_pattern11(strat, white_move)
         else:
             # Other options are all split options with a triangle,
             # only need to call the one function
             move = self.reply_two_part(strat, white_move)
+            self.decompose_pattern(pattern_id, strat, move)
             
-        self.decompose_pattern(pattern_id, strat, move)
         return move
     
     def decompose_pattern(self, pattern_id, pattern, move):
-        # Decomposes a specified pattern based on the move index into subgames.
-        # Does not accomodate bridge or 432 as of right now. 
+        # Decomposes a specified pattern based on the move index into subgames. 
         # move is the black stone that gets placed
+        # Only decomposes patterns that use a general reply strategy, all others
+        # get decomposed in their replying strategy
         if type(move) == tuple:
             move = coord_2_pos(move[0], move[1])
             
@@ -693,13 +699,62 @@ class HexBoard():
     def reply_pattern8(self, pattern, white_move):
         # This function replies to a threat in pattern 8 with a winning move
         index = pattern.index(white_move)
+        self.substrategies.remove(pattern)
         if index == 4 or index == 8:
             move = pattern[2]
+            # Add bridge and 432 pattern to substrategies
+            self.substrategies.append(pattern[0:2] + [2])
+            four32 = self.indices_to_pattern(pattern, [5,9,10,7,3,6,11,12])
+            self.substrategies.append(four32 + [5])
         elif index == 9:
             move = pattern[4]
+            pattern10 = self.indices_to_pattern(pattern, [0,1,2,5,6,8,10,11])
+            self.substrategies.append(pattern10 + [10])
         else:
             move = pattern[4]
+            # Bridge pattern
+            self.substrategies.append(pattern[8:10] + [2])
+            
         return pos_2_coord(move)
+    
+    def reply_pattern10(self, pattern, white_move):
+        # Makes a replying move in the 10th pattern
+        # Pattern 10 is a decomposed pattern of pattern 8, it is Local Pattern 15
+        # in Hayward's document
+        self.substrategies.remove(pattern)
+        if pattern.index(white_move) == 5:
+            # Still needs further decomposition
+            move = pattern[4]
+            self.substrategies.append(pattern[6:8] + [2])
+            self.substrategies.append(pattern[0:4] + [11])
+        else:
+            # No decomposition needed, connection complete
+            move = pattern[5]
+            
+        return pos_2_coord(move)
+    
+    def reply_pattern11(self, pattern, white_move):
+        # Makes a replying move in the 11th pattern
+        # Pattern 11 is a decomposed pattern of pattern 10, it is Local Pattern 25
+        # in Hayward's document
+        self.substrategies.remove(pattern)
+        if pattern.index(white_move) == 3:
+            # One bridge still remains, add it to substrategies
+            move = pattern[2]
+            self.substrategies.append(pattern[0:2] + [2])
+        else:
+            # Decomposition completed, pattern connected
+            move = pattern[3]
+            
+        return pos_2_coord(move)
+    
+    def indices_to_pattern(self, pattern, indices):
+        # Takes a list of indices and makes a new pattern from the previous one
+        # Used for decomposing patterns
+        return_pattern = []
+        for index in indices:
+            return_pattern.append(pattern[index])
+        return return_pattern
     
     def change_pattern(self, pattern):
         if type(pattern[0]) == str:
