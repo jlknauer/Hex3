@@ -7,8 +7,8 @@ def main():
     board_nxn.place_stone(1, 6, 1) ######## MAIN POSITION ########
     
     #board_nxn.place_stone(3,6,2)
-    #board_nxn.place_stone(5,4,1)
-    #board_nxn.place_stone(4,5,1)
+    #board_nxn.place_stone(5,3,1)
+    #board_nxn.place_stone(4,4,1)
     
     print(board_nxn)
     #print("Single Patterns : ",end='')

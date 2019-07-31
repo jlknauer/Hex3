@@ -418,8 +418,10 @@ class HexBoard():
                 if coord[0] >= 0 and coord[0] < self.board_dimension and coord[1] >= 0 and coord[1] < self.board_dimension:
                     if self.board_dict[coord].get_state() == BLACK:
                         # Adjacent black cells exist here, check corresponding patterns
-                        return_list = self.find_pattern7(pos, return_list, adjacents.index(coord)//2)
-                        return_list = self.find_pattern8(pos, return_list, adjacents.index(coord)//2)
+                        case = adjacents.index(coord)//2
+                        return_list = self.find_pattern7(pos, return_list, case)
+                        return_list = self.find_pattern8(pos, return_list, case)
+                        return_list = self.find_pattern12(pos, return_list, case)
                         
         return return_list
     
@@ -636,6 +638,53 @@ class HexBoard():
                 if pattern not in return_list:
                     return_list.append(pattern)
         
+        return return_list
+    
+    def find_pattern12(self, pos, return_list, case):
+        # Finds the 12th pattern on the game board. Pattern 12 is Local Pattern 7
+        # in the Hayward document
+        potential_patterns = []
+        x = pos[0]
+        y = pos[1]
+        
+        if case == 0:
+            if x > 3 and x < self.board_dimension-1 and y < self.board_dimension-4:
+                # Can have a down-right pattern
+                potential_patterns.append([(x+1,y), (x,y+1), (x+1,y+1), (x-2,y+2), (x-1,y+2),\
+                                           (x,y+2), (x+1,y+2), (x-3,y+3), (x-2,y+3), (x-1,y+3),\
+                                           (x,y+3), (x+1,y+3), (x-4,y+4), (x-3,y+4),\
+                                           (x-2,y+4), (x-1,y+4), (x,y+4), (x+1,y+4)])
+                
+            if x > 0 and x < self.board_dimension-4 and y > 3:
+                # Can have an up-left pattern
+                potential_patterns.append([(x-1,y), (x,y-1), (x-1,y-1), (x+2,y-2), (x+1,y-2),\
+                                           (x,y-2), (x-1,y-2), (x+3,y-3), (x+2,y-3), (x+1,y-3),\
+                                           (x,y-3), (x-1,y-3), (x+4,y-4), (x+3,y-4),\
+                                           (x+2,y-4), (x+1,y-4), (x,y-4), (x-1,y-4)])
+                
+        else:
+            if x > 4 and y < self.board_dimension-4:
+                # Can have a down-left pattern
+                potential_patterns.append([(x-1,y), (x-1,y+1), (x-2,y+1), (x,y+2), (x-1,y+2),\
+                                           (x-2,y+2), (x-3,y+2), (x,y+3), (x-1,y+3), (x-2,y+3),\
+                                           (x-3,y+3), (x-4,y+3), (x,y+4), (x-1,y+4),\
+                                           (x-2,y+4), (x-3,y+4), (x-4,y+4), (x-5,y+4)])
+                
+            if x < self.board_dimension-5 and y > 3:
+                # Can have an up-right pattern
+                potential_patterns.append([(x+1,y), (x+1,y-1), (x+2,y-1), (x,y-2), (x+1,y-2),\
+                                           (x+2,y-2), (x+3,y-2), (x,y-3), (x+1,y-3), (x+2,y-3),\
+                                           (x+3,y-3), (x+4,y-3), (x,y-4), (x+1,y-4),\
+                                           (x+2,y-4), (x+3,y-4), (x+4,y-4), (x+5,y-4)])
+        
+        # Ensure each potential pattern is empty and connected before adding it
+        for pattern in potential_patterns:
+            cells_to_check = pattern[12::]
+            if self.check_all_empty(pattern) and self.connected_ud_pattern(cells_to_check):
+                pattern = self.change_pattern(pattern) + [12]
+                if pattern not in return_list:
+                    return_list.append(pattern)
+                    
         return return_list
     
     def connected_ud_pattern(self, pattern):
