@@ -6,7 +6,7 @@ def main():
     pos_dict = {'a': 0, 'b': 1, 'c': 2, 'd': 3, 'e': 4, 'f': 5, 'g': 6, 'h': 7}
     board_nxn.place_stone(1, 6, 1) ######## MAIN POSITION ########
     
-    #board_nxn.place_stone(3,6,2)
+    ##board_nxn.place_stone(3,6,2)
     #board_nxn.place_stone(5,3,1)
     #board_nxn.place_stone(4,4,1)
     

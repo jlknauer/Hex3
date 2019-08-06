@@ -283,6 +283,8 @@ class HexBoard():
             move = self.reply_pattern10(strat, white_move)
         elif pattern_id == 11:
             move = self.reply_pattern11(strat, white_move)
+        elif pattern_id == 12:
+            move = self.reply_pattern12(strat, white_move)
         else:
             # Other options are all split options with a triangle,
             # only need to call the one function
@@ -794,6 +796,35 @@ class HexBoard():
         else:
             # Decomposition completed, pattern connected
             move = pattern[3]
+            
+        return pos_2_coord(move)
+    
+    def reply_pattern12(self, pattern, white_move):
+        # Makes a replying move in the 12th pattern
+        self.substrategies.remove(pattern)
+        index = pattern.index(white_move)
+        
+        if index == 3 or index == 7 or index == 8 or index == 12 or index == 13:
+            move = pattern[5]
+            self.substrategies.append([pattern[1], pattern[4], 2])
+            four32 = self.indices_to_pattern(pattern, [9,14,15,11,6,10,16,17])
+            self.substrategies.append(four32 + [5])
+        
+        elif index == 14:
+            move = pattern[7]
+            self.substrategies.append(pattern[12:14] + [2])
+            pattern13 = self.indices_to_pattern(pattern, [3,4,5,8,9,10,15,16])
+            self.substrategies.append(pattern13 + [13])
+            
+        elif index == 4:
+            move = pattern[3]
+            pattern14 = self.indices_to_pattern(pattern, [0,1,2,5,6,7,8,9,10,12,13,14,15,16])
+            self.substrategies.append(pattern14 + [14])
+            
+        else:
+            move = pattern[8]
+            self.substrategies.append(pattern[3:5] + [2])
+            self.substrategies.append(pattern[13:15] + [2])
             
         return pos_2_coord(move)
     
