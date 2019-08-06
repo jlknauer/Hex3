@@ -285,6 +285,10 @@ class HexBoard():
             move = self.reply_pattern11(strat, white_move)
         elif pattern_id == 12:
             move = self.reply_pattern12(strat, white_move)
+        elif pattern_id == 13:
+            move = self.reply_pattern13(strat, white_move)
+        elif pattern_id == 15:
+            move = self.reply_pattern15(strat, white_move)
         else:
             # Other options are all split options with a triangle,
             # only need to call the one function
@@ -825,6 +829,42 @@ class HexBoard():
             move = pattern[8]
             self.substrategies.append(pattern[3:5] + [2])
             self.substrategies.append(pattern[13:15] + [2])
+            
+        return pos_2_coord(move)
+    
+    def reply_pattern13(self, pattern, white_move):
+        # Makes a replying move in the 13th pattern
+        # Pattern 13 is a decomposition of pattern 12. It is Local Pattern 9 in
+        # the Hayward document
+        self.substrategies.remove(pattern)
+        if pattern.index(white_move) == 0:
+            move = pattern[1]
+            pattern15 = self.indices_to_pattern(pattern, [2,3,4,5,6,7])
+            self.substrategies.append(pattern15 + [15])
+            
+        else:
+            # Decomposition complete, pattern done
+            move = pattern[0]
+            
+        return pos_2_coord(move)
+    
+    def reply_pattern14(self, pattern, white_move):
+        # Make a replying move in pattern 14
+        # Pattern 14 is Local Pattern 16 in the Hayward document
+        return
+    
+    def reply_pattern15(self, pattern, white_move):
+        # Make a replying move in pattern 15
+        # Pattern 15 is Local Pattern 18 in the Hayward document
+        self.substrategies.remove(pattern)
+        if pattern.index(white_move) == 1:
+            move = pattern[3]
+            self.substrategies.append([pattern[0], pattern[2], [2]])
+            self.substrategies.append(pattern[4:6] + [2])
+            
+        else:
+            # Pattern completed, no decomposition to be done
+            move = pattern[1]
             
         return pos_2_coord(move)
     
