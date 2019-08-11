@@ -271,6 +271,7 @@ class HexBoard():
         # Find the pattern white is threatening and reply
         # If there's time this function should be optimized
         pattern_id = strat[len(strat)-1]
+        # If only python had switch statements...
         if pattern_id == 2: # Bridge is pattern 2
             move = self.reply_bridge(strat, white_move)
         elif pattern_id == 8:
@@ -287,8 +288,14 @@ class HexBoard():
             move = self.reply_pattern12(strat, white_move)
         elif pattern_id == 13:
             move = self.reply_pattern13(strat, white_move)
+        elif pattern_id == 14:
+            move = self.reply_pattern14(strat, white_move)
         elif pattern_id == 15:
             move = self.reply_pattern15(strat, white_move)
+        elif pattern_id == 16:
+            move = self.reply_pattern16(strat, white_move)
+        elif pattern_id == 17:
+            move = self.reply_pattern17(strat, white_move)
         else:
             # Other options are all split options with a triangle,
             # only need to call the one function
@@ -851,7 +858,26 @@ class HexBoard():
     def reply_pattern14(self, pattern, white_move):
         # Make a replying move in pattern 14
         # Pattern 14 is Local Pattern 16 in the Hayward document
-        return
+        self.substrategies.remove(pattern)
+        index = pattern.index(white_move)
+        if index == 5:
+            move = pattern[6]
+            self.substrategies.append(pattern[10:12] + [2])
+        
+        elif index == 6:
+            move = pattern[5]
+            self.substrategies.append(pattern[9:11] + [2])
+            
+        elif index == 10:
+            move = pattern[6]
+            pattern16 = self.indices_to_pattern(pattern, [0,1,2,3,4,7,8,11,12,13])
+            self.substrategies.append(pattern16 + [16])
+            
+        else:
+            move = pattern[10]
+            self.substrategies.append(pattern[5:7] + [2])
+            
+        return pos_2_coord(move)
     
     def reply_pattern15(self, pattern, white_move):
         # Make a replying move in pattern 15
@@ -866,6 +892,37 @@ class HexBoard():
             # Pattern completed, no decomposition to be done
             move = pattern[1]
             
+        return pos_2_coord(move)
+    
+    def reply_pattern16(self, pattern, white_move):
+        # Makes a replying move in the 16 pattern
+        # Pattern 16 is Local Pattern 26 in the Hayward document
+        self.substrategies.remove(pattern)
+        if pattern.index(white_move) == 7:
+            move = pattern[6]
+            self.substrategies.append(pattern[8:10] + [2])
+            pattern17 = self.indices_to_pattern(pattern, [1,2,3,4,5,6])
+            self.substrategies.append(pattern17 + [17])
+            
+        else:
+            # Decomposition completed
+            move = pattern[7]
+            
+        return pos_2_coord(move)
+    
+    def reply_pattern17(self, pattern, white_move):
+        # Makes a replying move in pattern 17
+        # Pattern 17 is Local Pattern 32 in the Hayward document
+        self.substrategies.remove(pattern)
+        if pattern.index(white_move) == 5:
+            move = pattern[2]
+            self.substrategies.append(pattern[0:2] + [2])
+            self.substrategies.append(pattern[3:5] + [2])
+            
+        else:
+            # Decomposition completed
+            move = pattern[5]
+        
         return pos_2_coord(move)
     
     def indices_to_pattern(self, pattern, indices):
